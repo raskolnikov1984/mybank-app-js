@@ -1,0 +1,77 @@
+classDiagram
+    direction TB
+
+    class Dinero {
+        <<value object>>
+        -_centavos: number
+        +sumar(otro: Dinero): Dinero
+        +restar(otro: Dinero): Dinero
+        +esMayorQue(otro: Dinero): boolean
+        +esPositivo(): boolean
+        +monto(): number
+    }
+
+    class Movimiento {
+        <<value object>>
+        -_fechaHora: Date
+        -_concepto: string
+        -_monto: Dinero
+        -_saldoResultante: Dinero
+        +fechaHora(): Date
+        +concepto(): string
+        +monto(): Dinero
+        +saldoResultante(): Dinero
+    }
+
+    class Rol {
+        <<value object>>
+        -_valor: string
+        +esCliente(): boolean
+        +esAdmin(): boolean
+    }
+
+    class Cuenta {
+        <<entity>>
+        -_id: string
+        -_saldo: Dinero
+        -_movimientos: Movimiento[]
+        -_estaBloqueada: boolean
+        -_intentosFallidos: number
+        +consignar(monto: Dinero): ResultadoOperacion
+        +retirar(monto: Dinero): ResultadoOperacion
+        +consultarSaldo(): Dinero
+        +obtenerMovimientos(): Movimiento[]
+        +bloquear(): void
+        +estaBloqueada(): boolean
+    }
+
+    class Usuario {
+        <<entity>>
+        -_id: string
+        -_nombreCompleto: string
+        -_nombreUsuario: string
+        -_hashClave: string
+        -_cuenta: Cuenta
+        -_rol: Rol
+        +obtenerCuenta(): Cuenta
+        +obtenerRol(): Rol
+    }
+
+    class DomainError {
+        <<abstract>>
+        -message: string
+        -code: string
+    }
+
+    class SaldoInsuficienteError
+    class CuentaBloqueadaError
+    class MontoInvalidoError
+
+    Cuenta "1" *-- "*" Movimiento : registra
+    Usuario "1" *-- "1" Cuenta : tiene
+    Cuenta ..> Dinero : usa
+    Movimiento ..> Dinero : usa
+    Usuario ..> Rol : tiene
+    DomainError <|-- SaldoInsuficienteError
+    DomainError <|-- CuentaBloqueadaError
+    DomainError <|-- MontoInvalidoError
