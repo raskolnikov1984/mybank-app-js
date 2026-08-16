@@ -1,0 +1,30 @@
+{
+    "name": "mybank-app",
+    "version": "1.0.0",
+    "description": "Create an app for bank management applying concept of software engenieer like Clean Architecture, Clean Code, TDD using tht JavaScript language.",
+    "keywords": [
+        "clean-architecture",
+        "clean-code",
+        "tdd",
+        "javascript",
+        "bank-app",
+        "ddd"
+    ],
+    "homepage": "https://github.com/raskolnikov1984/mybank-app-js#readme",
+    "bugs": {
+        "url": "https://github.com/raskolnikov1984/mybank-app-js/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/raskolnikov1984/mybank-app-js.git"
+    },
+    "license": "GPL-3.0",
+    "author": "Alejandro Ayala Usuga",
+    "type": "module",
+    "main": "src/main.js",
+    "scripts": {
+        "test": "node --test",
+        "test:watch": "node --test --watch",
+        "start": "node src/main.js"
+    }
+}
