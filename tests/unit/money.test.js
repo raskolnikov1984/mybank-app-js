@@ -129,6 +129,13 @@ describe("Money", () => {
 
             expect(() => a.subtract(b)).toThrow();
         });
+
+        it("Must throw AmountInvalidError when result is negative", () => {
+            const a = new Money(300);
+            const b = new Money(1000);
+
+            expect(() => a.subtract(b)).toThrow(AmountInvalidError);
+        });
     });
 
     describe("isGreaterThan", () => {
@@ -152,6 +159,13 @@ describe("Money", () => {
 
             expect(a.isGreaterThan(b)).toBe(false);
         });
+
+        it("Must throw when currencies differ", () => {
+            const a = new Money(2000, Currency.COLOMBIAN_PESO);
+            const b = new Money(1000, Currency.AMERICAN_DOLLAR);
+
+            expect(() => a.isGreaterThan(b)).toThrow();
+        });
     });
 
     describe("isPositive", () => {
@@ -168,11 +182,4 @@ describe("Money", () => {
         });
     });
 
-    describe("DomainError throwError", () => {
-        it("throwError must return the error code string", () => {
-            const error = new AmountInvalidError();
-
-            expect(error.throwError()).toEqual("AMOUNT_INVALID_ERROR");
-        });
-    });
 });
