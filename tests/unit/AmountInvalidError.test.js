@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { AmountInvalidError } from "../../src/domain/Aggregates/Shared/Errors/AmountInvalidError.js";
-import { DomainError } from "../../src/domain/Aggregates/Shared/Errors/DomainError.js";
+import { AmountInvalidError } from "../../src/domain/shared/errors/AmountInvalidError.js";
+import { DomainError } from "../../src/domain/shared/errors/DomainError.js";
 
 describe("AmountInvalidError", () => {
     it("Must be a subclass of DomainError", () => {
