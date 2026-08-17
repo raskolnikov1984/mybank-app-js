@@ -23,8 +23,13 @@
     "type": "module",
     "main": "src/main.js",
     "scripts": {
-        "test": "node --test",
-        "test:watch": "node --test --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:ui": "vitest --ui",
+        "test:coverage": "vitest run --coverage",
         "start": "node src/main.js"
+    },
+    "devDependencies": {
+        "vitest": "^4.1.10"
     }
 }
