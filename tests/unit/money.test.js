@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-    Money,
-    Currency,
-} from "../../src/domain/Aggregates/Account/ValueObjects/Money.js";
-import { AmountInvalidError } from "../../src/domain/Aggregates/Account/Errors/AmountInvalidError.js";
+import { Money, Currency } from "../../src/domain/Aggregates/Shared/ValueObjects/Money.js";
+import { AmountInvalidError } from "../../src/domain/Aggregates/Shared/Errors/AmountInvalidError.js";
 
 describe("Money", () => {
     describe("Creation", () => {

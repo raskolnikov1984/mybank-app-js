@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AmountInvalidError } from "../../src/domain/Aggregates/Account/Errors/AmountInvalidError.js";
+import { AmountInvalidError } from "../../src/domain/Aggregates/Shared/Errors/AmountInvalidError.js";
 import { DomainError } from "../../src/domain/Aggregates/Shared/Errors/DomainError.js";
 
 describe("AmountInvalidError", () => {

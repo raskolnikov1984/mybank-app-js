@@ -1,4 +1,4 @@
-import { DomainError } from "../../Shared/Errors/DomainError";
+import { DomainError } from "./DomainError";
 
 export class AmountInvalidError extends DomainError {
     constructor(message = "The provided amount is invalid") {
