@@ -43,6 +43,7 @@ export class Money {
     }
 
     isGreaterThan(other) {
+        this.#assertSameCurrency(other);
         return this.#amount > other.#amount;
     }
 
