@@ -1,5 +1,9 @@
 import { InvalidCredentialsError } from "../errors/InvalidCredentialsError.js";
 import { AccountLockedError } from "../errors/AccountLockedError.js";
+import { UserNameRequiredError } from "../errors/UserNameRequiredError.js";
+import { UserPasswordRequiredError } from "../errors/UserPasswordRequiredError.js";
+import { InvalidAccountError } from "../errors/InvalidAccountError.js";
+import { Account } from "../../account/entities/Account.js";
 
 const MAX_FAILED_ATTEMPTS = 3;
 
@@ -11,6 +15,15 @@ export class User {
     #isLocked;
 
     constructor(name, password, account) {
+        if (!name || name.trim().length === 0)
+            throw new UserNameRequiredError();
+
+        if (!password || password.trim().length === 0)
+            throw new UserPasswordRequiredError();
+
+        if (!(account instanceof Account))
+            throw new InvalidAccountError();
+
         this.#name = name;
         this.#password = password;
         this.#account = account;
