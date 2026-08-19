@@ -47,6 +47,11 @@ export class Money {
         return this.#amount > other.#amount;
     }
 
+    isLessThan(other) {
+        this.#assertSameCurrency(other);
+        return this.#amount < other.#amount;
+    }
+
     isPositive() {
         return this.#amount > 0;
     }
