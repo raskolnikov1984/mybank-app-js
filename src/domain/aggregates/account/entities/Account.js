@@ -11,6 +11,9 @@ export class Account {
         if (!(amount instanceof Money))
             throw new AccountInvalidAmountError("Type of Amount is unexpected");
 
+        if (!amount.isPositive())
+            throw new AccountInvalidAmountError("Initial balance must be positive");
+
         this.#balance = amount;
         this.#movements = [];
     }

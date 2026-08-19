@@ -17,6 +17,10 @@ describe("Account", () => {
         expect(() => new Account(19999)).toThrow(AccountInvalidAmountError);
     });
 
+    it("Cannot create account with zero balance", () => {
+        expect(() => new Account(new Money(0))).toThrow(AccountInvalidAmountError);
+    });
+
     it("When an new account is created the account must not has movements.", () => {
         const account = new Account(new Money(150000));
 
