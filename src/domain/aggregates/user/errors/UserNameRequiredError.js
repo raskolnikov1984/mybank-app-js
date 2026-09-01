@@ -1,4 +1,4 @@
-import { DomainError } from "../../../shared/errors/DomainError";
+import { DomainError } from "../../../shared/errors/DomainError.js";
 
 export class UserNameRequiredError extends DomainError {
     constructor(message = "User name is required") {

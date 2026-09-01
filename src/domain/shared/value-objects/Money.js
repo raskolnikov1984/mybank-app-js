@@ -1,4 +1,4 @@
-import { AmountInvalidError } from "../errors/AmountInvalidError";
+import { AmountInvalidError } from "../errors/AmountInvalidError.js";
 
 export const Currency = Object.freeze({
     AMERICAN_DOLLAR: "USD",

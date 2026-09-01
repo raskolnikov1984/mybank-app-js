@@ -1,4 +1,4 @@
-import { DomainError } from "../../../shared/errors/DomainError";
+import { DomainError } from "../../../shared/errors/DomainError.js";
 
 export class UserPasswordRequiredError extends DomainError {
     constructor(message = "Password is required") {

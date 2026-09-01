@@ -1,6 +1,6 @@
-import { Money } from "../../../shared/value-objects/Money";
-import { AccountInvalidAmountError } from "../errors/AccountInvalidAmountError";
-import { AccountNotEnoughtFundsError } from "../errors/AccountNotEnoughtFundsError";
+import { Money } from "../../../shared/value-objects/Money.js";
+import { AccountInvalidAmountError } from "../errors/AccountInvalidAmountError.js";
+import { AccountNotEnoughtFundsError } from "../errors/AccountNotEnoughtFundsError.js";
 import { Movement, MovementType } from "./Movement.js";
 
 export class Account {

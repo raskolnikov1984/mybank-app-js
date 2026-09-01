@@ -1,4 +1,4 @@
-import { DomainError } from "../../../shared/errors/DomainError";
+import { DomainError } from "../../../shared/errors/DomainError.js";
 
 export class AccountLockedError extends DomainError {
     constructor(message = "Account locked for 24 hours") {
