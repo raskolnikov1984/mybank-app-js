@@ -4,6 +4,7 @@ import { UserNameRequiredError } from "../errors/UserNameRequiredError.js";
 import { UserPasswordRequiredError } from "../errors/UserPasswordRequiredError.js";
 import { InvalidAccountError } from "../errors/InvalidAccountError.js";
 import { Account } from "../../account/entities/Account.js";
+import { UserRole } from "../value-objects/UserRole.js";
 
 const MAX_FAILED_ATTEMPTS = 3;
 
@@ -11,10 +12,11 @@ export class User {
     #name;
     #password;
     #account;
+    #role;
     #failedAttempts;
     #isLocked;
 
-    constructor(name, password, account) {
+    constructor(name, password, account, role = UserRole.CLIENTE) {
         if (!name || name.trim().length === 0)
             throw new UserNameRequiredError();
 
@@ -27,6 +29,7 @@ export class User {
         this.#name = name;
         this.#password = password;
         this.#account = account;
+        this.#role = role;
         this.#failedAttempts = 0;
         this.#isLocked = false;
     }
@@ -54,7 +57,15 @@ export class User {
         return this.#account;
     }
 
+    getRole() {
+        return this.#role;
+    }
+
     isLocked() {
         return this.#isLocked;
+    }
+
+    getFailedAttempts() {
+        return this.#failedAttempts;
     }
 }

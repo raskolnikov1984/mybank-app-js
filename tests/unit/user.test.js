@@ -7,6 +7,7 @@ import { AccountLockedError } from "../../src/domain/aggregates/user/errors/Acco
 import { UserNameRequiredError } from "../../src/domain/aggregates/user/errors/UserNameRequiredError.js";
 import { UserPasswordRequiredError } from "../../src/domain/aggregates/user/errors/UserPasswordRequiredError.js";
 import { InvalidAccountError } from "../../src/domain/aggregates/user/errors/InvalidAccountError.js";
+import { UserRole } from "../../src/domain/aggregates/user/value-objects/UserRole.js";
 
 describe("User", () => {
     it("Must be possible to create a user with name, password and account", () => {
@@ -87,5 +88,19 @@ describe("User", () => {
 
     it("Cannot create user without an Account instance", () => {
         expect(() => new User("John", "secret123", "notAnAccount")).toThrow(InvalidAccountError);
+    });
+
+    it("Must create a client by default when role is not provided", () => {
+        const account = new Account(new Money(100000));
+        const user = new User("John", "secret123", account);
+
+        expect(user.getRole()).toBe(UserRole.CLIENTE);
+    });
+
+    it("Must be possible to create a user with GERENTE role", () => {
+        const account = new Account(new Money(1));
+        const user = new User("gerente", "admin", account, UserRole.GERENTE);
+
+        expect(user.getRole()).toBe(UserRole.GERENTE);
     });
 });
