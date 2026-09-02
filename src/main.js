@@ -9,6 +9,7 @@ import { GetBalanceUseCase } from "./application/use-cases/GetBalanceUseCase.js"
 import { GetMovementsUseCase } from "./application/use-cases/GetMovementsUseCase.js";
 import { ConsolePrompt } from "./infraestructure/ui/ConsolePrompt.js";
 import { AccountLockedError } from "./domain/aggregates/user/errors/AccountLockedError.js";
+import { UserNotFoundError } from "./domain/aggregates/user/errors/UserNotFoundError.js";
 import { UserRole } from "./domain/aggregates/user/value-objects/UserRole.js";
 
 const MAX_LOGIN_ATTEMPTS = 3;
@@ -95,6 +96,10 @@ async function login() {
                 await transactionLoop(user);
             return;
         } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                ui.showError(error.message);
+                return;
+            }
             if (error instanceof AccountLockedError) {
                 ui.showError(error.message);
                 return;

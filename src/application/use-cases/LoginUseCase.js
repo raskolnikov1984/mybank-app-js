@@ -1,6 +1,7 @@
 import { LoginDTO } from "../dtos/LoginDTO.js";
 import { InvalidCredentialsError } from "../../domain/aggregates/user/errors/InvalidCredentialsError.js";
 import { AccountLockedError } from "../../domain/aggregates/user/errors/AccountLockedError.js";
+import { UserNotFoundError } from "../../domain/aggregates/user/errors/UserNotFoundError.js";
 
 export class LoginUseCase {
     #userRepository;
@@ -14,7 +15,7 @@ export class LoginUseCase {
         const user = this.#userRepository.findByName(dto.getName());
 
         if (!user)
-            throw new InvalidCredentialsError("Usuario no encontrado");
+            throw new UserNotFoundError("No tiene una cuenta abierta en el Banco Mi Plata");
 
         try {
             user.authenticate(dto.getPassword());
