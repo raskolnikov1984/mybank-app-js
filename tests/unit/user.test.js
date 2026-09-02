@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import { User } from "../../src/domain/aggregates/user/entities/User.js";
 import { Account } from "../../src/domain/aggregates/account/entities/Account.js";
 import { Money } from "../../src/domain/shared/value-objects/Money.js";
@@ -9,7 +9,12 @@ import { UserPasswordRequiredError } from "../../src/domain/aggregates/user/erro
 import { InvalidAccountError } from "../../src/domain/aggregates/user/errors/InvalidAccountError.js";
 import { UserRole } from "../../src/domain/aggregates/user/value-objects/UserRole.js";
 
+const LOCK_DURATION_MS = 24 * 60 * 60 * 1000;
+
 describe("User", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
     it("Must be possible to create a user with name, password and account", () => {
         const account = new Account(new Money(100000));
         const user = new User("John", "secret123", account);
@@ -102,5 +107,41 @@ describe("User", () => {
         const user = new User("gerente", "admin", account, UserRole.GERENTE);
 
         expect(user.getRole()).toBe(UserRole.GERENTE);
+    });
+
+    it("Must unlock the account after 24 hours", () => {
+        vi.useFakeTimers();
+        const account = new Account(new Money(100000));
+        const user = new User("John", "secret123", account);
+
+        expect(() => user.authenticate("wrong1")).toThrow(InvalidCredentialsError);
+        expect(() => user.authenticate("wrong2")).toThrow(InvalidCredentialsError);
+        expect(() => user.authenticate("wrong3")).toThrow(InvalidCredentialsError);
+        expect(user.isLocked()).toBe(true);
+
+        expect(() => user.authenticate("secret123")).toThrow(AccountLockedError);
+
+        vi.advanceTimersByTime(LOCK_DURATION_MS);
+
+        expect(user.authenticate("secret123")).toBe(true);
+        expect(user.isLocked()).toBe(false);
+    });
+
+    it("Failed attempts reset after automatic unlock", () => {
+        vi.useFakeTimers();
+        const account = new Account(new Money(100000));
+        const user = new User("John", "secret123", account);
+
+        expect(() => user.authenticate("wrong1")).toThrow(InvalidCredentialsError);
+        expect(() => user.authenticate("wrong2")).toThrow(InvalidCredentialsError);
+        expect(() => user.authenticate("wrong3")).toThrow(InvalidCredentialsError);
+
+        vi.advanceTimersByTime(LOCK_DURATION_MS);
+
+        expect(user.authenticate("secret123")).toBe(true);
+        expect(user.getFailedAttempts()).toBe(0);
+
+        expect(() => user.authenticate("wrong1")).toThrow(InvalidCredentialsError);
+        expect(user.isLocked()).toBe(false);
     });
 });

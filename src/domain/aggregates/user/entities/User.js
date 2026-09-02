@@ -7,6 +7,7 @@ import { Account } from "../../account/entities/Account.js";
 import { UserRole } from "../value-objects/UserRole.js";
 
 const MAX_FAILED_ATTEMPTS = 3;
+const LOCK_DURATION_MS = 24 * 60 * 60 * 1000;
 
 export class User {
     #name;
@@ -15,6 +16,7 @@ export class User {
     #role;
     #failedAttempts;
     #isLocked;
+    #lockedAt;
 
     constructor(name, password, account, role = UserRole.CLIENTE) {
         if (!name || name.trim().length === 0)
@@ -32,16 +34,26 @@ export class User {
         this.#role = role;
         this.#failedAttempts = 0;
         this.#isLocked = false;
+        this.#lockedAt = null;
     }
 
     authenticate(password) {
-        if (this.#isLocked)
-            throw new AccountLockedError();
+        if (this.#isLocked) {
+            if (Date.now() - this.#lockedAt >= LOCK_DURATION_MS) {
+                this.#isLocked = false;
+                this.#failedAttempts = 0;
+                this.#lockedAt = null;
+            } else {
+                throw new AccountLockedError();
+            }
+        }
 
         if (password !== this.#password) {
             this.#failedAttempts++;
-            if (this.#failedAttempts >= MAX_FAILED_ATTEMPTS)
+            if (this.#failedAttempts >= MAX_FAILED_ATTEMPTS) {
                 this.#isLocked = true;
+                this.#lockedAt = Date.now();
+            }
             throw new InvalidCredentialsError();
         }
 
