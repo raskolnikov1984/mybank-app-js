@@ -20,6 +20,7 @@ export class LoginUseCase {
         try {
             user.authenticate(dto.getPassword());
         } catch (error) {
+            this.#userRepository.save(user);
             if (user.isLocked())
                 throw new AccountLockedError(
                     "Cuenta bloqueada por 24 horas, comunícate con tu banco",
@@ -28,6 +29,8 @@ export class LoginUseCase {
                 `Credenciales inválidas. Intento ${user.getFailedAttempts()} de 3`,
             );
         }
+
+        this.#userRepository.save(user);
 
         return { user };
     }

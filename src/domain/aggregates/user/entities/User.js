@@ -61,6 +61,25 @@ export class User {
         return true;
     }
 
+    toSnapshot() {
+        return {
+            name: this.#name,
+            password: this.#password,
+            role: this.#role,
+            failedAttempts: this.#failedAttempts,
+            isLocked: this.#isLocked,
+            lockedAt: this.#lockedAt,
+        };
+    }
+
+    static restore(snapshot, account) {
+        const user = new User(snapshot.name, snapshot.password, account, snapshot.role);
+        user.#failedAttempts = snapshot.failedAttempts;
+        user.#isLocked = snapshot.isLocked;
+        user.#lockedAt = snapshot.lockedAt;
+        return user;
+    }
+
     getName() {
         return this.#name;
     }

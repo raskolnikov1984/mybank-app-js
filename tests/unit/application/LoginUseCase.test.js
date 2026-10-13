@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { LoginUseCase } from "../../../src/application/use-cases/LoginUseCase.js";
 import { UserRepository } from "../../../src/application/ports/UserRepository.js";
 import { User } from "../../../src/domain/aggregates/user/entities/User.js";
-import { Account } from "../../../src/domain/aggregates/account/entities/Account.js";
+import { SavingsAccount } from "../../../src/domain/aggregates/account/entities/SavingsAccount.js";
 import { Money } from "../../../src/domain/shared/value-objects/Money.js";
 import { InvalidCredentialsError } from "../../../src/domain/aggregates/user/errors/InvalidCredentialsError.js";
 import { AccountLockedError } from "../../../src/domain/aggregates/user/errors/AccountLockedError.js";
@@ -31,7 +31,7 @@ describe("LoginUseCase", () => {
     beforeEach(() => {
         userRepository = new MockUserRepository();
         useCase = new LoginUseCase(userRepository);
-        userRepository.save(new User("John", "secret123", new Account(new Money(100000))));
+        userRepository.save(new User("John", "secret123", new SavingsAccount(new Money(100000))));
     });
 
     it("Must login successfully with valid credentials", () => {

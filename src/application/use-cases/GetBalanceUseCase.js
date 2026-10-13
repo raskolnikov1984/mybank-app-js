@@ -13,6 +13,14 @@ export class GetBalanceUseCase {
         if (!account)
             throw new AccountInvalidAmountError("Account not found");
 
-        return { balance: account.getBalance() };
+        return {
+            balance: account.getBalance(),
+            type: account.accountType(),
+            typeName: account.typeName(),
+            creditUsed: account.getCreditUsed(),
+            availableCredit: account.getAvailableCredit(),
+            summary: account.describe(),
+            supportsMonthlyStatement: account.supportsMonthlyStatement(),
+        };
     }
 }

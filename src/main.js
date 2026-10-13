@@ -6,6 +6,8 @@ import { LoginUseCase } from "./application/use-cases/LoginUseCase.js";
 import { WithdrawUseCase } from "./application/use-cases/WithdrawUseCase.js";
 import { DepositUseCase } from "./application/use-cases/DepositUseCase.js";
 import { GetBalanceUseCase } from "./application/use-cases/GetBalanceUseCase.js";
+import { ApplyMonthlyStatementUseCase } from "./application/use-cases/ApplyMonthlyStatementUseCase.js";
+import { AccountType } from "./domain/aggregates/account/value-objects/AccountType.js";
 import { GetMovementsUseCase } from "./application/use-cases/GetMovementsUseCase.js";
 import { ConsolePrompt } from "./infraestructure/ui/ConsolePrompt.js";
 import { AccountLockedError } from "./domain/aggregates/user/errors/AccountLockedError.js";
@@ -24,6 +26,7 @@ const withdrawUseCase = new WithdrawUseCase(accountRepository);
 const depositUseCase = new DepositUseCase(accountRepository);
 const getBalanceUseCase = new GetBalanceUseCase(accountRepository);
 const getMovementsUseCase = new GetMovementsUseCase(accountRepository);
+const applyMonthlyStatementUseCase = new ApplyMonthlyStatementUseCase(accountRepository);
 
 const ui = new ConsolePrompt();
 
@@ -53,8 +56,25 @@ function showTransactionMenu() {
     ui.show("  2. Consignar Dinero");
     ui.show("  3. Consultar Saldo");
     ui.show("  4. Consultar Movimientos");
-    ui.show("  5. Cerrar Sesión");
+    ui.show("  5. Estado Mensual");
+    ui.show("  6. Cerrar Sesión");
     ui.show("---------------------------");
+}
+
+const ACCOUNT_TYPE_OPTIONS = {
+    "1": AccountType.SAVINGS,
+    "2": AccountType.CHECKING,
+    "3": AccountType.CREDIT_CARD,
+};
+
+const MOVEMENT_LABELS = {
+    DEPOSIT: "Consignación",
+    WITHDRAW: "Retiro",
+    INTEREST: "Intereses",
+};
+
+function formatMoney(money) {
+    return `$${money.getAmount().toLocaleString("es-CO")}`;
 }
 
 async function register() {
@@ -62,16 +82,27 @@ async function register() {
 
     const name = await ui.ask("Nombre de usuario: ");
     const password = await ui.ask("Contraseña: ");
-    const balanceStr = await ui.ask("Saldo inicial: ");
-    const balance = parseFloat(balanceStr);
+    ui.show("Tipo de producto: 1. Cuenta de Ahorros  2. Cuenta Corriente  3. Tarjeta de Crédito");
+    const accountType = ACCOUNT_TYPE_OPTIONS[await ui.ask("Seleccione el tipo: ")];
 
-    if (isNaN(balance) || balance <= 0) {
-        ui.showError("El saldo inicial debe ser un número mayor a 0.");
+    if (!accountType) {
+        ui.showError("Tipo de producto no válido.");
         return;
     }
 
+    let balance;
+    if (accountType !== AccountType.CREDIT_CARD) {
+        const balanceStr = await ui.ask("Saldo inicial: ");
+        balance = parseFloat(balanceStr);
+
+        if (isNaN(balance) || balance <= 0) {
+            ui.showError("El saldo inicial debe ser un número mayor a 0.");
+            return;
+        }
+    }
+
     try {
-        const result = registerUseCase.execute({ name, password, initialBalance: balance });
+        const result = registerUseCase.execute({ name, password, initialBalance: balance, accountType });
         ui.show(`\n✔ Registro exitoso. Bienvenido, ${result.name}.`);
     } catch (error) {
         ui.showError(error.message);
@@ -157,6 +188,9 @@ async function transactionLoop(user) {
                 await showMovements(accountId);
                 break;
             case "5":
+                await showMonthlyStatement(accountId);
+                break;
+            case "6":
                 ui.show("\nSesión cerrada correctamente.");
                 running = false;
                 break;
@@ -177,8 +211,8 @@ async function withdraw(accountId) {
     }
 
     try {
-        const { newBalance } = withdrawUseCase.execute({ accountId, amount });
-        ui.show(`\n✔ Retiro exitoso. Nuevo saldo: $${newBalance.getAmount().toLocaleString("es-CO")}`);
+        withdrawUseCase.execute({ accountId, amount });
+        ui.show(`\n✔ Retiro exitoso. ${getBalanceUseCase.execute(accountId).summary}`);
     } catch (error) {
         ui.showError(error.message);
     }
@@ -195,8 +229,8 @@ async function deposit(accountId) {
     }
 
     try {
-        const { newBalance } = depositUseCase.execute({ accountId, amount });
-        ui.show(`\n✔ Consignación exitosa. Nuevo saldo: $${newBalance.getAmount().toLocaleString("es-CO")}`);
+        depositUseCase.execute({ accountId, amount });
+        ui.show(`\n✔ Consignación exitosa. ${getBalanceUseCase.execute(accountId).summary}`);
     } catch (error) {
         ui.showError(error.message);
     }
@@ -204,9 +238,9 @@ async function deposit(accountId) {
 
 async function showBalance(accountId) {
     try {
-        const { balance } = getBalanceUseCase.execute(accountId);
+        const { summary } = getBalanceUseCase.execute(accountId);
         ui.show(`\n--- Consulta de Saldo ---`);
-        ui.show(`Saldo actual: $${balance.getAmount().toLocaleString("es-CO")}`);
+        ui.show(summary);
     } catch (error) {
         ui.showError(error.message);
     }
@@ -224,11 +258,29 @@ async function showMovements(accountId) {
         }
 
         movements.forEach((m, i) => {
-            const type = m.getType() === "DEPOSIT" ? "Consignación" : "Retiro";
+            const type = MOVEMENT_LABELS[m.getType()] ?? m.getType();
             const amount = m.getAmount().getAmount().toLocaleString("es-CO");
             const date = m.getDate().toLocaleString("es-CO");
             ui.show(`  ${i + 1}. [${date}] ${type}: $${amount}`);
         });
+    } catch (error) {
+        ui.showError(error.message);
+    }
+}
+
+async function showMonthlyStatement(accountId) {
+    try {
+        if (!getBalanceUseCase.execute(accountId).supportsMonthlyStatement) {
+            ui.show("\nSu producto no tiene estado mensual.");
+            return;
+        }
+
+        const { statement } = applyMonthlyStatementUseCase.execute(accountId);
+
+        ui.show("\n--- Estado Mensual ---");
+        ui.show(`Producto: ${statement.typeName}`);
+        ui.show(`Intereses: ${formatMoney(statement.interest)}`);
+        ui.show(getBalanceUseCase.execute(accountId).summary);
     } catch (error) {
         ui.showError(error.message);
     }

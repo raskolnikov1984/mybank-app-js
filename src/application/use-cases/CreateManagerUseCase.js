@@ -1,6 +1,6 @@
 import { UserRole } from "../../domain/aggregates/user/value-objects/UserRole.js";
 import { Money } from "../../domain/shared/value-objects/Money.js";
-import { Account } from "../../domain/aggregates/account/entities/Account.js";
+import { SavingsAccount } from "../../domain/aggregates/account/entities/SavingsAccount.js";
 import { User } from "../../domain/aggregates/user/entities/User.js";
 
 const MANAGER_NAME = "gerente";
@@ -19,7 +19,7 @@ export class CreateManagerUseCase {
         if (this.#userRepository.exists(MANAGER_NAME))
             return;
 
-        const account = new Account(new Money(1));
+        const account = new SavingsAccount(new Money(1));
         const manager = new User(MANAGER_NAME, MANAGER_PASSWORD, account, UserRole.GERENTE);
 
         this.#userRepository.save(manager);

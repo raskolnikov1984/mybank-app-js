@@ -1,6 +1,7 @@
 export const MovementType = Object.freeze({
     WITHDRAW: "WITHDRAW",
     DEPOSIT: "DEPOSIT",
+    INTEREST: "INTEREST",
 });
 
 export class Movement {
@@ -8,10 +9,10 @@ export class Movement {
     #amount;
     #date;
 
-    constructor(type, amount) {
+    constructor(type, amount, date = new Date()) {
         this.#type = type;
         this.#amount = amount;
-        this.#date = new Date();
+        this.#date = date;
     }
 
     getType() {
