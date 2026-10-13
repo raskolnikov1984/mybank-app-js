@@ -47,6 +47,7 @@ classDiagram
         +supportsMonthlyStatement(): boolean = false
         +monthlyStatement(): StatementResult
         +describe()* string
+        +hasOpenPosition(): boolean
         +insufficientFundsError(): DomainError
     }
 
@@ -83,8 +84,35 @@ classDiagram
         -_hashClave: string
         -_account: Account
         -_rol: Rol
+        -_profile: ClientProfile
         +getAccount(): Account
         +obtenerRol(): Rol
+        +changePassword(newPassword): void
+        +unlock(): void
+        +authenticate(password): boolean
+        +getLoginStatus(): LoginStatus
+        +getProfile(): ClientProfile
+    }
+
+    class ClientProfile {
+        <<value object>>
+        +getFullName(): string
+        +getIdentification(): Identification
+        +getPhone(): string
+    }
+
+    class Identification {
+        <<value object>>
+        +getType(): IdentificationType
+        +getNumber(): string
+        +key(): string
+    }
+
+    class RegistrationRequest {
+        <<entity>>
+        +getProfile(): ClientProfile
+        +getAccountType(): string
+        +getInitialBalance(): number
     }
 
     class DomainError {
@@ -97,6 +125,15 @@ classDiagram
     class CreditLimitExceededError
     class InvalidAccountTypeError
     class MonthlyStatementNotSupportedError
+    class UserAlreadyExistsError
+    class UserHasOpenBalanceError
+    class DeletionNotConfirmedError
+    class ManagerProtectedError
+    class InvalidIdentificationError
+    class FullNameInvalidError
+    class InvalidPhoneError
+    class PasswordMismatchError
+    class IdentificationAlreadyRegisteredError
     class CuentaBloqueadaError
     class MontoInvalidoError
 
@@ -115,3 +152,15 @@ classDiagram
     DomainError <|-- CreditLimitExceededError
     DomainError <|-- InvalidAccountTypeError
     DomainError <|-- MonthlyStatementNotSupportedError
+    DomainError <|-- UserAlreadyExistsError
+    DomainError <|-- UserHasOpenBalanceError
+    DomainError <|-- DeletionNotConfirmedError
+    DomainError <|-- ManagerProtectedError
+    DomainError <|-- InvalidIdentificationError
+    DomainError <|-- FullNameInvalidError
+    DomainError <|-- InvalidPhoneError
+    DomainError <|-- PasswordMismatchError
+    DomainError <|-- IdentificationAlreadyRegisteredError
+    Usuario "1" o-- "0..1" ClientProfile : tiene
+    ClientProfile ..> Identification : usa
+    RegistrationRequest "1" *-- "1" ClientProfile : contiene
