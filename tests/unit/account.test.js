@@ -173,4 +173,23 @@ describe("Account (shared behavior through CheckingAccount)", () => {
 
         expect(account.getMovements().length).toBe(1);
     });
+
+    it("Must have an open position while it holds a balance", () => {
+        expect(new CheckingAccount(new Money(1000)).hasOpenPosition()).toBe(true);
+    });
+
+    it("Must have no open position when the balance is zero and nothing is owed", () => {
+        const account = new CheckingAccount(new Money(1000));
+        account.withdrawFunds(new Money(1000));
+
+        expect(account.hasOpenPosition()).toBe(false);
+    });
+
+    it("Must have an open position while an overdraft is in use", () => {
+        const account = new CheckingAccount(new Money(1000));
+        account.withdrawFunds(new Money(1200));
+
+        expect(account.getBalance().equals(new Money(0))).toBe(true);
+        expect(account.hasOpenPosition()).toBe(true);
+    });
 });

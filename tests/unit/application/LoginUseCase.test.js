@@ -64,4 +64,25 @@ describe("LoginUseCase", () => {
             AccountLockedError,
         );
     });
+
+    it("Must tell the attempt number and the remaining attempts on each failure", () => {
+        const messageOf = (password) => {
+            try {
+                useCase.execute({ name: "John", password });
+            } catch (error) {
+                return error.message;
+            }
+            return "";
+        };
+
+        expect(messageOf("wrong1")).toBe("Credenciales inválidas. Intento 1 de 3. Intentos restantes: 2");
+        expect(messageOf("wrong2")).toBe("Credenciales inválidas. Intento 2 de 3. Intentos restantes: 1");
+        expect(messageOf("wrong3")).toBe("Cuenta bloqueada por 24 horas, comunícate con tu banco");
+    });
+
+    it("Must keep rejecting the correct password while the account is locked", () => {
+        for (const password of ["wrong1", "wrong2", "wrong3"]) expect(() => useCase.execute({ name: "John", password })).toThrow();
+
+        expect(() => useCase.execute({ name: "John", password: "secret123" })).toThrow(AccountLockedError);
+    });
 });

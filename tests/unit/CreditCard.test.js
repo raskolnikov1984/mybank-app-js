@@ -92,3 +92,23 @@ describe("CreditCard", () => {
         expect(description).toContain("Cupo disponible");
     });
 });
+
+describe("CreditCard open position", () => {
+    it("Must have no open position without debt", () => {
+        expect(new CreditCard().hasOpenPosition()).toBe(false);
+    });
+
+    it("Must have an open position while there is debt", () => {
+        const card = new CreditCard();
+        card.withdrawFunds(new Money(300000));
+
+        expect(card.hasOpenPosition()).toBe(true);
+    });
+
+    it("Must have an open position when it holds a credit balance", () => {
+        const card = new CreditCard();
+        card.depositFunds(new Money(1000));
+
+        expect(card.hasOpenPosition()).toBe(true);
+    });
+});

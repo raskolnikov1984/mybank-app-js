@@ -77,6 +77,11 @@ export class Account {
         return this.#balance.add(this.getAvailableCredit());
     }
 
+    // True while the product holds money or owes any: balance, debt or overdraft.
+    hasOpenPosition() {
+        return this.#balance.isPositive() || this.#creditUsed.isPositive();
+    }
+
     getMovements() {
         return [...this.#movements];
     }

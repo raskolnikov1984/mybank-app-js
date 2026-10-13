@@ -1,6 +1,7 @@
 import { LoginDTO } from "../dtos/LoginDTO.js";
 import { InvalidCredentialsError } from "../../domain/aggregates/user/errors/InvalidCredentialsError.js";
 import { AccountLockedError } from "../../domain/aggregates/user/errors/AccountLockedError.js";
+import { MAX_LOGIN_ATTEMPTS } from "../../domain/aggregates/user/entities/User.js";
 import { UserNotFoundError } from "../../domain/aggregates/user/errors/UserNotFoundError.js";
 
 export class LoginUseCase {
@@ -25,8 +26,9 @@ export class LoginUseCase {
                 throw new AccountLockedError(
                     "Cuenta bloqueada por 24 horas, comunícate con tu banco",
                 );
+            const { remainingAttempts } = user.getLoginStatus();
             throw new InvalidCredentialsError(
-                `Credenciales inválidas. Intento ${user.getFailedAttempts()} de 3`,
+                `Credenciales inválidas. Intento ${user.getFailedAttempts()} de ${MAX_LOGIN_ATTEMPTS}. Intentos restantes: ${remainingAttempts}`,
             );
         }
 

@@ -8,6 +8,7 @@ import { User } from "../../src/domain/aggregates/user/entities/User.js";
 import { UserRole } from "../../src/domain/aggregates/user/value-objects/UserRole.js";
 import { InvalidAccountTypeError } from "../../src/domain/aggregates/account/errors/InvalidAccountTypeError.js";
 import { AccountLockedError } from "../../src/domain/aggregates/user/errors/AccountLockedError.js";
+import { ClientProfile } from "../../src/domain/aggregates/user/value-objects/ClientProfile.js";
 import { Money } from "../../src/domain/shared/value-objects/Money.js";
 
 const roundTrip = (account) =>
@@ -98,5 +99,36 @@ describe("User snapshots", () => {
         expect(restored.isLocked()).toBe(true);
         expect(restored.getFailedAttempts()).toBe(3);
         expect(() => restored.authenticate("pw")).toThrow(AccountLockedError);
+    });
+
+    it("Must restore the identity profile of a client", () => {
+        const account = new SavingsAccount(new Money(1000));
+        const profile = new ClientProfile({
+            fullName: "Ana Pérez",
+            identificationType: "CEDULA",
+            identificationNumber: "1020304050",
+            phone: "3001234567",
+        });
+        const user = new User("ana", "pw", account, UserRole.CLIENTE, profile);
+
+        const restored = User.restore(JSON.parse(JSON.stringify(user.toSnapshot())), account);
+
+        expect(restored.getProfile().getFullName()).toBe("Ana Pérez");
+        expect(restored.getProfile().getIdentification().key()).toBe("CEDULA:1020304050");
+        expect(restored.getProfile().getPhone()).toBe("3001234567");
+    });
+
+    it("Must keep loading users saved before identity data existed", () => {
+        const account = new SavingsAccount(new Money(1000));
+        const { profile: _omitted, ...legacy } = new User("ana", "pw", account).toSnapshot();
+
+        const restored = User.restore(JSON.parse(JSON.stringify(legacy)), account);
+
+        expect(restored.getProfile()).toBeNull();
+        expect(restored.authenticate("pw")).toBe(true);
+    });
+
+    it("Must save a user without profile with a null profile", () => {
+        expect(new User("ana", "pw", new SavingsAccount(new Money(1000))).toSnapshot().profile).toBeNull();
     });
 });

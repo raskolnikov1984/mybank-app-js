@@ -10,4 +10,16 @@ export class UserRepository {
     exists(name) {
         throw new Error("NOT_IMPLEMENTED_METHOD");
     }
+
+    findAll() {
+        throw new Error("NOT_IMPLEMENTED_METHOD");
+    }
+
+    delete(name) {
+        throw new Error("NOT_IMPLEMENTED_METHOD");
+    }
+
+    existsByIdentification(identification) {
+        throw new Error("NOT_IMPLEMENTED_METHOD");
+    }
 }
