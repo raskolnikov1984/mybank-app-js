@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import AuthGuard from "../components/AuthGuard.js";
-import Alert from "../components/Alert.js";
+import AuthGuard from "../../components/AuthGuard.js";
+import Alert from "../../components/Alert.js";
 import { getContainer } from "@/infraestructure/web/container.js";
 import { toMessage } from "@/infraestructure/web/errorMessages.js";
 import { formatMoney, MOVEMENT_LABELS, parseAmount } from "@/infraestructure/web/format.js";

@@ -37,4 +37,10 @@ export class LocalStorageAccountRepository extends AccountRepository {
         this.#snapshots[id] = account.toSnapshot();
         this.#store.write(this.#snapshots);
     }
+
+    delete(id) {
+        this.#cache.delete(id);
+        delete this.#snapshots[id];
+        this.#store.write(this.#snapshots);
+    }
 }

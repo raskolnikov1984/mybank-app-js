@@ -10,4 +10,8 @@ export class InMemoryAccountRepository extends AccountRepository {
     save(id, account) {
         this.#accounts.set(id, account);
     }
+
+    delete(id) {
+        this.#accounts.delete(id);
+    }
 }

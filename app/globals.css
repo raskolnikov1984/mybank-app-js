@@ -135,3 +135,7 @@ td {
     padding: 8px;
     border-bottom: 1px solid var(--border);
 }
+
+.table-scroll {
+    overflow-x: auto;
+}

@@ -6,6 +6,14 @@ export function formatMoney(money) {
     }).format(money.getAmount());
 }
 
+export function formatPesos(amount) {
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0,
+    }).format(amount);
+}
+
 export const MOVEMENT_LABELS = {
     DEPOSIT: "Consignación",
     WITHDRAW: "Retiro",

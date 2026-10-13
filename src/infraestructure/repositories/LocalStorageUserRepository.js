@@ -47,4 +47,24 @@ export class LocalStorageUserRepository extends UserRepository {
     exists(name) {
         return this.#cache.has(name) || name in this.#snapshots;
     }
+
+    findAll() {
+        return Object.keys(this.#snapshots)
+            .map((name) => this.findByName(name))
+            .filter((user) => user !== null);
+    }
+
+    delete(name) {
+        this.#cache.delete(name);
+        delete this.#snapshots[name];
+        this.#store.write(this.#snapshots);
+    }
+
+    existsByIdentification(identification) {
+        return Object.values(this.#snapshots).some(
+            (snapshot) =>
+                snapshot.profile &&
+                `${snapshot.profile.identificationType}:${snapshot.profile.identificationNumber}` === identification.key(),
+        );
+    }
 }

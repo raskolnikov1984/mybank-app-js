@@ -14,4 +14,18 @@ export class InMemoryUserRepository extends UserRepository {
     exists(name) {
         return this.#users.has(name);
     }
+
+    findAll() {
+        return [...this.#users.values()];
+    }
+
+    delete(name) {
+        this.#users.delete(name);
+    }
+
+    existsByIdentification(identification) {
+        return [...this.#users.values()].some(
+            (user) => user.getProfile()?.getIdentification().equals(identification) ?? false,
+        );
+    }
 }

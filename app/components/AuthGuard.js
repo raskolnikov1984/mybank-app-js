@@ -14,7 +14,7 @@ export default function AuthGuard({ role, children }) {
         const current = getSession();
 
         if (!current || current.role !== role) {
-            router.replace("/");
+            router.replace("/login");
             return;
         }
 
