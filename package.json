@@ -27,9 +27,17 @@
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
-        "start": "node src/main.js"
+        "start": "node src/main.js",
+        "dev": "next dev",
+        "build": "next build",
+        "start:web": "next start"
     },
     "devDependencies": {
         "vitest": "^4.1.10"
+    },
+    "dependencies": {
+        "next": "^16.4.0",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0"
     }
 }

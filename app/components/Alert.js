@@ -1,0 +1,9 @@
+export default function Alert({ type, children }) {
+    if (!children) return null;
+
+    return (
+        <div className={`alert ${type}`} role={type === "error" ? "alert" : "status"}>
+            {children}
+        </div>
+    );
+}
