@@ -30,19 +30,49 @@ classDiagram
         +esAdmin(): boolean
     }
 
-    class Cuenta {
-        <<entity>>
-        -_id: string
-        -_saldo: Dinero
-        -_movimientos: Movimiento[]
-        -_estaBloqueada: boolean
-        -_intentosFallidos: number
-        +consignar(monto: Dinero): ResultadoOperacion
-        +retirar(monto: Dinero): ResultadoOperacion
-        +consultarSaldo(): Dinero
-        +obtenerMovimientos(): Movimiento[]
-        +bloquear(): void
-        +estaBloqueada(): boolean
+    class Account {
+        <<abstract>>
+        -#balance: Money
+        -#creditUsed: Money
+        -#movements: Movement[]
+        +withdrawFunds(amount: Money): void
+        +depositFunds(amount: Money): void
+        +getBalance(): Money
+        +getCreditUsed(): Money
+        +getAvailableCredit(): Money
+        +getMovements(): Movement[]
+        +accountType()* string
+        +typeName()* string
+        +creditLimit()* Money
+        +supportsMonthlyStatement(): boolean = false
+        +monthlyStatement(): StatementResult
+        +describe()* string
+        +insufficientFundsError(): DomainError
+    }
+
+    class SavingsAccount {
+        <<CuentaAhorros>>
+        +creditLimit(): Money = 0
+        +withdrawFunds(amount): credits 1.5% interest first
+    }
+
+    class CheckingAccount {
+        <<CuentaCorriente>>
+        +creditLimit(): Money = 20% of current balance
+    }
+
+    class CreditCard {
+        <<TarjetaCredito>>
+        -#limit: Money
+        +getDebt(): Money
+        +creditLimit(): Money = credit limit
+        +supportsMonthlyStatement(): boolean = true
+        +monthlyStatement(): 2% interest on debt
+        +insufficientFundsError(): CreditLimitExceededError
+    }
+
+    class AccountFactory {
+        +create(type, initialBalance)$ Account
     }
 
     class Usuario {
@@ -51,9 +81,9 @@ classDiagram
         -_nombreCompleto: string
         -_nombreUsuario: string
         -_hashClave: string
-        -_cuenta: Cuenta
+        -_account: Account
         -_rol: Rol
-        +obtenerCuenta(): Cuenta
+        +getAccount(): Account
         +obtenerRol(): Rol
     }
 
@@ -64,14 +94,24 @@ classDiagram
     }
 
     class SaldoInsuficienteError
+    class CreditLimitExceededError
+    class InvalidAccountTypeError
+    class MonthlyStatementNotSupportedError
     class CuentaBloqueadaError
     class MontoInvalidoError
 
-    Cuenta "1" *-- "*" Movimiento : registra
-    Usuario "1" *-- "1" Cuenta : tiene
-    Cuenta ..> Dinero : usa
+    Account <|-- SavingsAccount
+    Account <|-- CheckingAccount
+    Account <|-- CreditCard
+    AccountFactory ..> Account : creates
+    Account "1" *-- "*" Movimiento : registra
+    Usuario "1" *-- "1" Account : tiene
+    Account ..> Dinero : usa
     Movimiento ..> Dinero : usa
     Usuario ..> Rol : tiene
     DomainError <|-- SaldoInsuficienteError
     DomainError <|-- CuentaBloqueadaError
     DomainError <|-- MontoInvalidoError
+    DomainError <|-- CreditLimitExceededError
+    DomainError <|-- InvalidAccountTypeError
+    DomainError <|-- MonthlyStatementNotSupportedError
