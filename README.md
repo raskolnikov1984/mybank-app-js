@@ -22,15 +22,15 @@ Products are created through `AccountFactory.create(type, initialBalance)` with 
 | Abstraction | `Account` models what every product has in common (balance, credit in use, movements, withdraw/deposit) and cannot be instantiated; `AccountFactory` hides which class is built. | `Account.js` (`new.target` guard, abstract hooks `accountType()`, `creditLimit()`, `describe()`), `AccountFactory.js` |
 | Encapsulation | State lives in `#private` fields and changes only through `withdrawFunds`, `depositFunds` and, for products that have one, `monthlyStatement`; `getMovements()` returns a copy; persistence goes through `toSnapshot()`/`restore`. | `Account.js`, `CreditCard.js` (`#limit`), `User.js` (`#password`, `#failedAttempts`, ...), `Money.js` |
 | Inheritance | `SavingsAccount`, `CheckingAccount` and `CreditCard` extend `Account` and reuse its withdraw/deposit algorithm. | `SavingsAccount.js`, `CheckingAccount.js`, `CreditCard.js` |
-| Polymorphism | The same call behaves differently per type: `withdrawFunds` (credits 1.5% interest first / overdraft up to 20% of the balance / credit limit), `monthlyStatement()` (not supported / not supported / 2% interest on debt) and `describe()`. Callers never use `instanceof`. | `tests/unit/AccountPolymorphism.test.js`, `ApplyMonthlyStatementUseCase.js` |
+| Polymorphism | The same call behaves differently per type: `withdrawFunds` (credits 1.5% interest first / overdraft up to 20% of the balance / credit limit), `purchaseInInstallments()` (not supported / not supported / financed with interest by term) and `describe()`. Callers never use `instanceof`. | `tests/unit/AccountPolymorphism.test.js`, `ApplyMonthlyStatementUseCase.js` |
 
 ## Products
 
-| Product | Withdraw rule | Monthly statement |
+| Product | Withdraw rule | Installment purchases |
 | --- | --- | --- |
-| `SavingsAccount` | Credits 1.5% of the balance as interest right before each withdrawal; the amount cannot exceed balance + interest (a rejected withdrawal credits nothing) | None |
-| `CheckingAccount` | Up to 120% of the current balance (20% overdraft); no interest, no fees. Once the overdraft is in use no more is granted until deposits repay it | None |
-| `CreditCard` | Up to the credit limit (2.000.000); the balance is the debt | +2% of the debt |
+| `SavingsAccount` | Credits 1.5% of the balance as interest right before each withdrawal; the amount cannot exceed balance + interest (a rejected withdrawal credits nothing) | Not supported |
+| `CheckingAccount` | Up to 120% of the current balance (20% overdraft); no interest, no fees. Once the overdraft is in use no more is granted until deposits repay it | Not supported |
+| `CreditCard` | Up to the credit limit (2.000.000), charging 2% interest on the withdrawn amount (recorded as its own interest movement, and the amount plus interest must fit the available credit); payments can never exceed the debt; the balance is the debt | Yes: 1 to 36 installments; 0% up to 2 installments, 1.9% monthly from 3 to 6, 2.3% monthly from 7. Monthly payment = capital × rate / (1 − (1 + rate)^−n). The debt grows by the total to pay (capital + interest of the term) and that total must fit the available credit |
 
 ## User administration (CRUD)
 
@@ -68,7 +68,7 @@ Clients stored before these data existed (and the manager) keep working and are 
 | `/` | Public | Institutional landing page: menu, presentation, products, how to start and corporate footer |
 | `/login` | Public | Login form (manager goes to `/gerente`, clients to `/cliente`) |
 | `/registro` | Public | Registration **request** form (name, password, product and initial balance when it applies) |
-| `/cliente` | Clients | Deposit, withdraw, transfer to another client (pick the destination from the list of available accounts), balance, movements and monthly statement (credit card) |
+| `/cliente` | Clients | Deposit, withdraw, transfer to another client (pick the destination from the list of available accounts), purchase in installments with the monthly payment preview (credit card), balance and movements (each purchase shows its monthly payment) |
 | `/gerente` | Manager | Registration requests, client registration and client administration |
 
 Registering from `/registro` does not create a user: it stores a pending request with the identity data of the applicant. The manager reviews it in `/gerente` ("Solicitudes de registro") and either **approves** it (the client is created with the usual registration rules and can log in with the requested password) or **rejects** it (the request is discarded and the name is free again). A request is rejected when its name already belongs to a user or to another pending request, and an approval fails, keeping the request pending, if the name was taken in the meantime. The applicant is not notified: the login says "No tiene una cuenta abierta" until the request is approved. Requests exist only in the web app; the console keeps direct registration by the manager.

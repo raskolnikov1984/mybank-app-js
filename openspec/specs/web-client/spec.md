@@ -36,7 +36,7 @@ On first load with empty storage the web application SHALL create the default ma
 - **THEN** logging in as `gerente`/`admin` succeeds
 
 ### Requirement: Client operations
-The client view SHALL let the logged-in client deposit, withdraw, transfer to another registered client, see their balance (or debt and available credit for a credit card), and see their movements. The transfer form SHALL let the client open a list of the available accounts, choose one recipient from it and enter an amount, and SHALL show the list's accounts by user name, full name when known, and product type. The view SHALL offer the monthly statement operation only when the client's product supports it (credit card). Domain errors SHALL be shown as readable Spanish messages without leaving the view.
+The client view SHALL let the logged-in client deposit, withdraw, transfer to another registered client, see their balance (or debt and available credit for a credit card), and see their movements. The transfer form SHALL let the client open a list of the available accounts, choose one recipient from it and enter an amount, and SHALL show the list's accounts by user name, full name when known, and product type. A credit card client SHALL also be able to buy in installments by entering an amount and a number of installments, SHALL see the monthly payment, rate and total to pay for the chosen values before confirming, and SHALL see the monthly payment of every purchase in the movement list. The view SHALL offer the monthly statement operation only when the client's product supports it (currently none). A credit card client SHALL be told that withdrawals carry a 2% interest, and SHALL see that interest as its own movement. Domain errors SHALL be shown as readable Spanish messages without leaving the view.
 
 #### Scenario: Deposit
 - **WHEN** a savings client with balance 100000 deposits 50000
@@ -55,9 +55,24 @@ The client view SHALL let the logged-in client deposit, withdraw, transfer to an
 - **THEN** the view shows debt and available credit instead of a plain balance
 
 #### Scenario: Monthly statement only for credit cards
-- **WHEN** a savings client and a checking client open the client view
-- **THEN** neither view offers the monthly statement operation, while a credit card client's view does
+- **WHEN** a savings client, a checking client and a credit card client open the client view
+- **THEN** none of the views offers the monthly statement operation, because no product supports it any longer
 
+#### Scenario: Installment preview
+- **WHEN** a credit card client enters a purchase of 1000000 and chooses 6 installments before confirming
+- **THEN** the view shows the rate 1.9 % monthly, the monthly payment 177924 and the total to pay 1067544
+
+#### Scenario: Installment purchase
+- **WHEN** a credit card client confirms a purchase of 1000000 in 6 installments
+- **THEN** a success message is shown, the displayed debt and available credit are updated and the movement list shows the purchase with its 6 installments and a monthly payment of 177924
+
+#### Scenario: Purchase above the available credit
+- **WHEN** a credit card client confirms a purchase whose total to pay exceeds the available credit
+- **THEN** a Spanish credit-limit message is shown in the view and the debt is unchanged
+
+#### Scenario: Installments only for credit cards
+- **WHEN** a savings client and a checking client open the client view
+- **THEN** neither view offers the installment purchase form
 #### Scenario: Recipient list is displayed
 - **WHEN** a client opens the transfer form and expands the list of available accounts
 - **THEN** the other registered clients are listed with their user name and product type, and the client themself and the manager are absent
@@ -77,6 +92,14 @@ The client view SHALL let the logged-in client deposit, withdraw, transfer to an
 #### Scenario: Rejected transfer
 - **WHEN** the client transfers more than their product allows
 - **THEN** an insufficient-funds message is shown in the view and the balance is unchanged
+
+#### Scenario: Credit card withdrawal shows interest
+- **WHEN** a credit card client with no debt withdraws 300000
+- **THEN** the displayed debt is 306000 and the movement list shows an interest of 6000 and the withdrawal of 300000
+
+#### Scenario: Credit card payment above the debt
+- **WHEN** a credit card client with debt 300000 deposits 450000
+- **THEN** a Spanish message says the payment exceeds the current debt, the debt stays 300000 and no movement is added
 
 ### Requirement: Manager registers clients
 The manager view SHALL let the manager register a client with identification (type and number), full name, mobile phone, user name, password with confirmation, product type and (for savings and checking) initial balance, and SHALL show validation errors, including the errors for a name or an identification that already exists and for a confirmation that does not match.

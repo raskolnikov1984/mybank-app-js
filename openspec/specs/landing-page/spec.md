@@ -48,7 +48,7 @@ The landing page SHALL present Banco Mi Plata with a main section containing the
 
 #### Scenario: Products section
 - **WHEN** the landing page is displayed
-- **THEN** it describes three products: savings account (1.5% interest on each withdrawal), checking account (overdraft of 20% of the balance, no interests) and credit card (credit limit and monthly interest on the debt)
+- **THEN** it describes three products: savings account (1.5% interest on each withdrawal), checking account (overdraft of 20% of the balance, no interests) and credit card (credit limit, withdrawals with 2% interest and purchases in installments with no interest up to 2 installments, 1.9% monthly from 3 to 6 installments and 2.3% monthly from 7 installments)
 
 ### Requirement: Visual identity
 The landing page SHALL use one consistent visual identity shared with the login and registration pages: a defined color palette for a banking brand, a logo, consistent typography and spacing, and responsive layouts that adapt from mobile to desktop widths. It SHALL NOT depend on external fonts, images or scripts to be displayed correctly.
