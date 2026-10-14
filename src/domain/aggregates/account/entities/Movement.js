@@ -2,6 +2,8 @@ export const MovementType = Object.freeze({
     WITHDRAW: "WITHDRAW",
     DEPOSIT: "DEPOSIT",
     INTEREST: "INTEREST",
+    TRANSFER_OUT: "TRANSFER_OUT",
+    TRANSFER_IN: "TRANSFER_IN",
 });
 
 export class Movement {

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AuthGuard from "../../components/AuthGuard.js";
 import Alert from "../../components/Alert.js";
+import CollapsibleSection from "../../components/CollapsibleSection.js";
 import { getContainer } from "@/infraestructure/web/container.js";
 import { toMessage } from "@/infraestructure/web/errorMessages.js";
 import { formatMoney, MOVEMENT_LABELS, parseAmount } from "@/infraestructure/web/format.js";
@@ -32,9 +33,48 @@ function AmountForm({ label, onSubmit }) {
     );
 }
 
+function TransferForm({ recipients, onSubmit }) {
+    const [recipient, setRecipient] = useState("");
+    const [amount, setAmount] = useState("");
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (onSubmit(recipient, amount)) setAmount("");
+    };
+
+    return (
+        <CollapsibleSection title="Transferir">
+            {recipients.length === 0 ? (
+                <p className="muted">No hay otras cuentas disponibles para transferir.</p>
+            ) : (
+                <form onSubmit={handleSubmit} noValidate>
+                    <label>
+                        Cuenta destino
+                        <select value={recipient} onChange={(e) => setRecipient(e.target.value)}>
+                            <option value="">Selecciona una cuenta</option>
+                            {recipients.map((r) => (
+                                <option key={r.name} value={r.name}>
+                                    {r.name}
+                                    {r.fullName ? ` - ${r.fullName}` : ""} ({r.typeName})
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Monto a transferir
+                        <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                    </label>
+                    <button type="submit">Transferir</button>
+                </form>
+            )}
+        </CollapsibleSection>
+    );
+}
+
 function ClientView({ name }) {
     const [info, setInfo] = useState(null);
     const [movements, setMovements] = useState([]);
+    const [recipients, setRecipients] = useState([]);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -42,6 +82,7 @@ function ClientView({ name }) {
         const container = getContainer();
         setInfo(container.getBalance.execute(name));
         setMovements(container.getMovements.execute(name).movements);
+        setRecipients(container.listTransferRecipients.execute({ name }).recipients);
     }, [name]);
 
     useEffect(() => {
@@ -75,6 +116,19 @@ function ClientView({ name }) {
             return false;
         }
         return run(() => execute(amount), message);
+    };
+
+    const transfer = (to, value) => {
+        if (!to) {
+            setError("Elige una cuenta destino para transferir.");
+            setSuccess("");
+            return false;
+        }
+        return withAmount(
+            value,
+            (amount) => getContainer().transfer.execute({ fromAccountId: name, toAccountId: to, amount }),
+            `Transferencia exitosa a ${to}.`,
+        );
     };
 
     const container = () => getContainer();
@@ -117,6 +171,8 @@ function ClientView({ name }) {
                     />
                 </div>
             </div>
+
+            <TransferForm recipients={recipients} onSubmit={transfer} />
 
             {info?.supportsMonthlyStatement && (
                 <section className="card">

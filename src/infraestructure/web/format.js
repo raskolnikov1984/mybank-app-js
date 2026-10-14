@@ -18,6 +18,8 @@ export const MOVEMENT_LABELS = {
     DEPOSIT: "Consignación",
     WITHDRAW: "Retiro",
     INTEREST: "Intereses",
+    TRANSFER_OUT: "Transferencia enviada",
+    TRANSFER_IN: "Transferencia recibida",
 };
 
 export function parseAmount(value) {

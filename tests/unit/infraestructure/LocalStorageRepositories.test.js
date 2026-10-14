@@ -3,6 +3,7 @@ import { FakeStorage } from "./FakeStorage.js";
 import { LocalStorageAccountRepository } from "../../../src/infraestructure/repositories/LocalStorageAccountRepository.js";
 import { LocalStorageUserRepository } from "../../../src/infraestructure/repositories/LocalStorageUserRepository.js";
 import { RegisterUserUseCase } from "../../../src/application/use-cases/RegisterUserUseCase.js";
+import { TransferUseCase } from "../../../src/application/use-cases/TransferUseCase.js";
 import { WithdrawUseCase } from "../../../src/application/use-cases/WithdrawUseCase.js";
 import { LoginUseCase } from "../../../src/application/use-cases/LoginUseCase.js";
 import { CreateManagerUseCase } from "../../../src/application/use-cases/CreateManagerUseCase.js";
@@ -29,6 +30,26 @@ describe("LocalStorage repositories", () => {
         expect(accounts.findById("x")).toBeNull();
         expect(users.findByName("x")).toBeNull();
         expect(users.exists("x")).toBe(false);
+    });
+
+    it("Must keep transfer movements with type, amount and date across a reload", () => {
+        const storage = new FakeStorage();
+        const first = open(storage);
+        const register = new RegisterUserUseCase(first.users, first.accounts);
+        register.execute(withIdentity({ name: "ana", password: "pw", accountType: "CHECKING", initialBalance: 500000 }));
+        register.execute(withIdentity({ name: "luis", password: "pw", accountType: "CHECKING", initialBalance: 100000 }));
+        new TransferUseCase(first.users, first.accounts).execute({ fromAccountId: "ana", toAccountId: "luis", amount: 100000 });
+
+        const second = open(storage);
+        const sent = second.accounts.findById("ana").getMovements()[0];
+        const received = second.accounts.findById("luis").getMovements()[0];
+
+        expect(sent.getType()).toBe("TRANSFER_OUT");
+        expect(sent.getAmount().equals(new Money(100000))).toBe(true);
+        expect(received.getType()).toBe("TRANSFER_IN");
+        expect(received.getAmount().equals(new Money(100000))).toBe(true);
+        expect(received.getDate()).toBeInstanceOf(Date);
+        expect(second.accounts.findById("luis").getBalance().equals(new Money(200000))).toBe(true);
     });
 
     it("Must keep users and typed accounts across a reload", () => {

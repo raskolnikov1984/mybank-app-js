@@ -14,6 +14,7 @@ const MESSAGES = {
     MANAGER_PROTECTED_ERROR: "El gerente no se puede administrar desde esta opción.",
     REGISTRATION_REQUEST_ALREADY_EXISTS_ERROR: "Ya existe una solicitud de registro pendiente con ese nombre.",
     REGISTRATION_REQUEST_NOT_FOUND_ERROR: "No se encontró la solicitud de registro.",
+    SAME_ACCOUNT_TRANSFER_ERROR: "No puedes transferir a tu propia cuenta.",
     INVALID_ACCOUNT_ERROR: "La cuenta del usuario no es válida.",
 };
 

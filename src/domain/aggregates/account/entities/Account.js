@@ -86,7 +86,7 @@ export class Account {
         return [...this.#movements];
     }
 
-    withdrawFunds(amount) {
+    withdrawFunds(amount, type = MovementType.WITHDRAW) {
         this.#assertPositiveMoney(amount, "Withdraw amount must be positive");
 
         if (this.getAvailableFunds().isLessThan(amount))
@@ -95,16 +95,16 @@ export class Account {
         const fromBalance = this.#balance.isLessThan(amount) ? this.#balance : amount;
         this.#balance = this.#balance.subtract(fromBalance);
         this.#creditUsed = this.#creditUsed.add(amount.subtract(fromBalance));
-        this.#movements.push(new Movement(MovementType.WITHDRAW, amount));
+        this.#movements.push(new Movement(type, amount));
     }
 
-    depositFunds(amount) {
+    depositFunds(amount, type = MovementType.DEPOSIT) {
         this.#assertPositiveMoney(amount, "Deposit amount must be positive");
 
         const toCredit = this.#creditUsed.isLessThan(amount) ? this.#creditUsed : amount;
         this.#creditUsed = this.#creditUsed.subtract(toCredit);
         this.#balance = this.#balance.add(amount.subtract(toCredit));
-        this.#movements.push(new Movement(MovementType.DEPOSIT, amount));
+        this.#movements.push(new Movement(type, amount));
     }
 
     // Persistence: the only way state leaves or re-enters an account.

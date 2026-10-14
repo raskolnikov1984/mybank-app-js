@@ -16,6 +16,7 @@ import { InvalidPhoneError } from "../../../src/domain/aggregates/user/errors/In
 import { PasswordMismatchError } from "../../../src/domain/aggregates/user/errors/PasswordMismatchError.js";
 import { IdentificationAlreadyRegisteredError } from "../../../src/domain/aggregates/user/errors/IdentificationAlreadyRegisteredError.js";
 import { AccountLockedError } from "../../../src/domain/aggregates/user/errors/AccountLockedError.js";
+import { SameAccountTransferError } from "../../../src/domain/aggregates/account/errors/SameAccountTransferError.js";
 import { UserNotFoundError } from "../../../src/domain/aggregates/user/errors/UserNotFoundError.js";
 
 describe("toMessage", () => {
@@ -29,6 +30,10 @@ describe("toMessage", () => {
         expect(toMessage(new UserNotFoundError("No tiene una cuenta abierta en el Banco Mi Plata"))).toBe(
             "No tiene una cuenta abierta en el Banco Mi Plata",
         );
+    });
+
+    it("Must translate the transfer to the same account", () => {
+        expect(toMessage(new SameAccountTransferError())).toBe("No puedes transferir a tu propia cuenta.");
     });
 
     it("Must translate the unsupported monthly statement", () => {

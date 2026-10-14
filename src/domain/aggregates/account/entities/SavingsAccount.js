@@ -21,7 +21,7 @@ export class SavingsAccount extends Account {
 
     // Interest is credited right before each accepted withdrawal. Everything is
     // checked first so a rejected withdrawal leaves no interest behind.
-    withdrawFunds(amount) {
+    withdrawFunds(amount, type = MovementType.WITHDRAW) {
         if (!(amount instanceof Money))
             throw new AccountInvalidAmountError("Type of Amount is unexpected");
 
@@ -37,7 +37,7 @@ export class SavingsAccount extends Account {
             throw this.insufficientFundsError();
 
         this._credit(interest, MovementType.INTEREST);
-        super.withdrawFunds(amount);
+        super.withdrawFunds(amount, type);
     }
 
     describe() {
