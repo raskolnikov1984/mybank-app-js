@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AuthGuard from "../../components/AuthGuard.js";
 import Alert from "../../components/Alert.js";
+import CollapsibleSection from "../../components/CollapsibleSection.js";
 import ClientRegistrationForm, { PRODUCT_OPTIONS, identificationLabel } from "../../components/ClientRegistrationForm.js";
 import { getContainer } from "@/infraestructure/web/container.js";
 import { toMessage } from "@/infraestructure/web/errorMessages.js";
@@ -33,10 +34,9 @@ function RegisterClient({ onRegistered }) {
     };
 
     return (
-        <section className="card">
-            <h2>Registrar cliente</h2>
+        <CollapsibleSection title="Registrar cliente">
             <ClientRegistrationForm submitLabel="Registrar" onSubmit={register} />
-        </section>
+        </CollapsibleSection>
     );
 }
 
@@ -101,8 +101,7 @@ function ClientList({ refreshKey }) {
     };
 
     return (
-        <section className="card">
-            <h2>Clientes</h2>
+        <CollapsibleSection title="Clientes">
             <Alert type="error">{error}</Alert>
             <Alert type="success">{success}</Alert>
             {users.length === 0 ? (
@@ -203,7 +202,7 @@ function ClientList({ refreshKey }) {
                 </table>
                 </div>
             )}
-        </section>
+        </CollapsibleSection>
     );
 }
 
@@ -238,8 +237,7 @@ function RequestsSection({ refreshKey, onChanged }) {
     const typeLabel = (accountType) => PRODUCT_OPTIONS.find((o) => o.value === accountType)?.label ?? accountType;
 
     return (
-        <section className="card">
-            <h2>Solicitudes de registro</h2>
+        <CollapsibleSection title="Solicitudes de registro">
             <Alert type="error">{error}</Alert>
             <Alert type="success">{success}</Alert>
             {requests.length === 0 ? (
@@ -300,7 +298,7 @@ function RequestsSection({ refreshKey, onChanged }) {
                 </table>
                 </div>
             )}
-        </section>
+        </CollapsibleSection>
     );
 }
 

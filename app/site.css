@@ -78,7 +78,7 @@
 }
 
 .site-shell .btn-primary:hover {
-    background: var(--mp-gold-dark);
+    background: #e8b84a;
 }
 
 .site-shell .btn-ghost {
@@ -88,8 +88,7 @@
 }
 
 .site-shell .btn-ghost:hover {
-    background: var(--mp-green-700);
-    color: var(--mp-white);
+    background: rgba(11, 110, 79, 0.08);
 }
 
 .site-shell .btn-outline {
@@ -99,8 +98,7 @@
 }
 
 .site-shell .btn-outline:hover {
-    background: var(--mp-white);
-    color: var(--mp-green-900);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 /* Header */
@@ -237,6 +235,10 @@
     border: 1px solid var(--mp-line);
     border-radius: var(--mp-radius);
     background: var(--mp-white);
+}
+
+.site-shell .card:hover {
+    border-color: #b3c7bb;
 }
 
 .section-alt .card {
@@ -377,8 +379,7 @@
 }
 
 .site-footer a:hover {
-    background: var(--mp-white);
-    color: var(--mp-green-900);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .footer-copy {
@@ -422,7 +423,7 @@
 }
 
 .auth-page button[type="submit"]:hover {
-    background: var(--mp-green-900);
+    background: var(--mp-green-600);
 }
 
 .attempts {
