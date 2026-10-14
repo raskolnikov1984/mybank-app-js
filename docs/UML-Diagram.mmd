@@ -1,166 +1,427 @@
 classDiagram
     direction TB
 
-    class Dinero {
+    %% ===== Dominio: shared =====
+    class Money {
         <<value object>>
-        -_centavos: number
-        +sumar(otro: Dinero): Dinero
-        +restar(otro: Dinero): Dinero
-        +esMayorQue(otro: Dinero): boolean
-        +esPositivo(): boolean
-        +monto(): number
+        -#amount: number
+        -#currency: Currency
+        +getAmount() number
+        +getCurrency() Currency
+        +equals(other) boolean
+        +add(other) Money
+        +subtract(other) Money
+        +isGreaterThan(other) boolean
+        +isLessThan(other) boolean
+        +isPositive() boolean
+    }
+    class Currency {
+        <<enumeration>>
+        COLOMBIAN_PESO
     }
 
-    class Movimiento {
-        <<value object>>
-        -_fechaHora: Date
-        -_concepto: string
-        -_monto: Dinero
-        -_saldoResultante: Dinero
-        +fechaHora(): Date
-        +concepto(): string
-        +monto(): Dinero
-        +saldoResultante(): Dinero
-    }
-
-    class Rol {
-        <<value object>>
-        -_valor: string
-        +esCliente(): boolean
-        +esAdmin(): boolean
-    }
-
+    %% ===== Dominio: account =====
     class Account {
         <<abstract>>
         -#balance: Money
         -#creditUsed: Money
         -#movements: Movement[]
-        +withdrawFunds(amount: Money): void
-        +depositFunds(amount: Money): void
-        +getBalance(): Money
-        +getCreditUsed(): Money
-        +getAvailableCredit(): Money
-        +getMovements(): Movement[]
-        +accountType()* string
+        +accountType()* AccountType
         +typeName()* string
         +creditLimit()* Money
-        +supportsMonthlyStatement(): boolean = false
-        +monthlyStatement(): StatementResult
         +describe()* string
-        +hasOpenPosition(): boolean
-        +insufficientFundsError(): DomainError
+        +supportsMonthlyStatement() boolean
+        +monthlyStatement() StatementResult
+        +insufficientFundsError() DomainError
+        +getBalance() Money
+        +getCreditUsed() Money
+        +getAvailableCredit() Money
+        +getAvailableFunds() Money
+        +hasOpenPosition() boolean
+        +getMovements() Movement[]
+        +withdrawFunds(amount: Money) void
+        +depositFunds(amount: Money) void
+        +toSnapshot() object
+        +restoreState(account, snapshot)$ void
     }
-
     class SavingsAccount {
-        <<CuentaAhorros>>
-        +creditLimit(): Money = 0
-        +withdrawFunds(amount): credits 1.5% interest first
+        +creditLimit() Money
+        +withdrawFunds(amount: Money) void
+        +describe() string
     }
-
     class CheckingAccount {
-        <<CuentaCorriente>>
-        +creditLimit(): Money = 20% of current balance
+        +creditLimit() Money
+        +describe() string
     }
-
     class CreditCard {
-        <<TarjetaCredito>>
         -#limit: Money
-        +getDebt(): Money
-        +creditLimit(): Money = credit limit
-        +supportsMonthlyStatement(): boolean = true
-        +monthlyStatement(): 2% interest on debt
-        +insufficientFundsError(): CreditLimitExceededError
+        +getDebt() Money
+        +creditLimit() Money
+        +supportsMonthlyStatement() boolean
+        +monthlyStatement() StatementResult
+        +insufficientFundsError() CreditLimitExceededError
+        +toSnapshot() object
+        +describe() string
     }
-
-    class AccountFactory {
-        +create(type, initialBalance)$ Account
-    }
-
-    class Usuario {
+    class Movement {
         <<entity>>
-        -_id: string
-        -_nombreCompleto: string
-        -_nombreUsuario: string
-        -_hashClave: string
-        -_account: Account
-        -_rol: Rol
-        -_profile: ClientProfile
-        +getAccount(): Account
-        +obtenerRol(): Rol
-        +changePassword(newPassword): void
-        +unlock(): void
-        +authenticate(password): boolean
-        +getLoginStatus(): LoginStatus
-        +getProfile(): ClientProfile
+        -#type: MovementType
+        -#amount: Money
+        -#date: Date
+        +getType() MovementType
+        +getAmount() Money
+        +getDate() Date
+    }
+    class MovementType {
+        <<enumeration>>
+        WITHDRAW
+        DEPOSIT
+        INTEREST
+    }
+    class AccountType {
+        <<enumeration>>
+        SAVINGS
+        CHECKING
+        CREDIT_CARD
+    }
+    class AccountFactory {
+        <<factory>>
+        +create(type, initialBalance)$ Account
+        +restore(snapshot)$ Account
     }
 
+    %% ===== Dominio: user =====
+    class User {
+        <<aggregate root>>
+        -#name: string
+        -#password: string
+        -#account: Account
+        -#role: UserRole
+        -#failedAttempts: number
+        -#isLocked: boolean
+        -#lockedAt: number
+        -#profile: ClientProfile
+        +authenticate(password) boolean
+        +getLoginStatus() LoginStatus
+        +changePassword(newPassword) void
+        +unlock() void
+        +getName() string
+        +getAccount() Account
+        +getProfile() ClientProfile
+        +getRole() UserRole
+        +isLocked() boolean
+        +getFailedAttempts() number
+        +toSnapshot() object
+        +restore(snapshot, account)$ User
+    }
+    class UserRole {
+        <<enumeration>>
+        GERENTE
+        CLIENTE
+    }
     class ClientProfile {
         <<value object>>
-        +getFullName(): string
-        +getIdentification(): Identification
-        +getPhone(): string
+        -#fullName: FullName
+        -#identification: Identification
+        -#phone: MobilePhone
+        +getFullName() FullName
+        +getIdentification() Identification
+        +getPhone() MobilePhone
+        +toSnapshot() object
+        +restore(snapshot)$ ClientProfile
     }
-
+    class FullName {
+        <<value object>>
+        -#value: string
+        +getValue() string
+    }
     class Identification {
         <<value object>>
-        +getType(): IdentificationType
-        +getNumber(): string
-        +key(): string
+        -#type: IdentificationType
+        -#number: string
+        +getType() IdentificationType
+        +getNumber() string
+        +key() string
+        +equals(other) boolean
+    }
+    class IdentificationType {
+        <<enumeration>>
+        CEDULA
+        PASSPORT
+    }
+    class MobilePhone {
+        <<value object>>
+        -#number: string
+        +getNumber() string
     }
 
+    %% ===== Dominio: registration =====
     class RegistrationRequest {
         <<entity>>
-        +getProfile(): ClientProfile
-        +getAccountType(): string
-        +getInitialBalance(): number
+        -#name: string
+        -#password: string
+        -#accountType: AccountType
+        -#initialBalance: number
+        -#profile: ClientProfile
+        -#createdAt: Date
+        +getName() string
+        +getPassword() string
+        +getAccountType() AccountType
+        +getInitialBalance() number
+        +getProfile() ClientProfile
+        +getCreatedAt() Date
+        +toSnapshot() object
+        +restore(snapshot)$ RegistrationRequest
     }
 
+    %% ===== Dominio: errores =====
     class DomainError {
         <<abstract>>
-        -message: string
-        -code: string
+        +errorCode()* string
+        +throwError() string
     }
 
-    class SaldoInsuficienteError
+    class AccountInvalidAmountError
+    class AccountNotEnoughtFundsError
     class CreditLimitExceededError
     class InvalidAccountTypeError
     class MonthlyStatementNotSupportedError
+    class AccountLockedError
+    class DeletionNotConfirmedError
+    class FullNameInvalidError
+    class IdentificationAlreadyRegisteredError
+    class InvalidAccountError
+    class InvalidCredentialsError
+    class InvalidIdentificationError
+    class InvalidPhoneError
+    class ManagerProtectedError
+    class PasswordMismatchError
     class UserAlreadyExistsError
     class UserHasOpenBalanceError
-    class DeletionNotConfirmedError
-    class ManagerProtectedError
-    class InvalidIdentificationError
-    class FullNameInvalidError
-    class InvalidPhoneError
-    class PasswordMismatchError
-    class IdentificationAlreadyRegisteredError
-    class CuentaBloqueadaError
-    class MontoInvalidoError
+    class UserNameRequiredError
+    class UserNotFoundError
+    class UserPasswordRequiredError
+    class RegistrationRequestAlreadyExistsError
+    class RegistrationRequestNotFoundError
+    class AmountInvalidError
 
+    %% ===== Aplicación: puertos =====
+    class AccountRepository {
+        <<interface>>
+        +findById(id) Account
+        +save(id, account) void
+        +delete(id) void
+    }
+    class UserRepository {
+        <<interface>>
+        +findByName(name) User
+        +save(user) void
+        +exists(name) boolean
+        +findAll() User[]
+        +delete(name) void
+        +existsByIdentification(identification) boolean
+    }
+    class RegistrationRequestRepository {
+        <<interface>>
+        +findByName(name) RegistrationRequest
+        +findAll() RegistrationRequest[]
+        +save(request) void
+        +delete(name) void
+        +findByIdentification(identification) RegistrationRequest
+    }
+
+    %% ===== Aplicación: DTOs =====
+    class RegisterUserDTO {
+        <<dto>>
+    }
+    class LoginDTO {
+        <<dto>>
+    }
+    class DepositDTO {
+        <<dto>>
+    }
+    class WithdrawDTO {
+        <<dto>>
+    }
+
+    %% ===== Aplicación: casos de uso =====
+    class RegisterUserUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class LoginUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class GetLoginStatusUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class CreateManagerUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ListUsersUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ChangeUserPasswordUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class UnlockUserUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class DeleteUserUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class WithdrawUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class DepositUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class GetBalanceUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class GetMovementsUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ApplyMonthlyStatementUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class SubmitRegistrationRequestUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ListRegistrationRequestsUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ApproveRegistrationRequestUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class RejectRegistrationRequestUseCase {
+        <<use case>>
+        +execute(input)
+    }
+
+    %% ===== Infraestructura =====
+    class InMemoryAccountRepository
+    class InMemoryUserRepository
+    class InMemoryRegistrationRequestRepository
+    class LocalStorageAccountRepository
+    class LocalStorageUserRepository
+    class LocalStorageRegistrationRequestRepository
+    class JsonStorage {
+        +read() any
+        +write(data) void
+    }
+    class ConsolePrompt {
+        +ask(question) string
+        +show(message) void
+        +showError(message) void
+        +clear() void
+        +close() void
+    }
+    class Container {
+        <<composition root>>
+        +getContainer()$ object
+    }
+
+    %% ===== Relaciones: dominio =====
     Account <|-- SavingsAccount
     Account <|-- CheckingAccount
     Account <|-- CreditCard
-    AccountFactory ..> Account : creates
-    Account "1" *-- "*" Movimiento : registra
-    Usuario "1" *-- "1" Account : tiene
-    Account ..> Dinero : usa
-    Movimiento ..> Dinero : usa
-    Usuario ..> Rol : tiene
-    DomainError <|-- SaldoInsuficienteError
-    DomainError <|-- CuentaBloqueadaError
-    DomainError <|-- MontoInvalidoError
+    Account "1" *-- "*" Movement : registra
+    Account ..> Money : usa
+    Movement ..> Money : usa
+    Movement ..> MovementType
+    Money ..> Currency
+    Account ..> AccountType
+    AccountFactory ..> Account : crea
+    User "1" *-- "1" Account : tiene
+    User ..> UserRole
+    User "1" o-- "0..1" ClientProfile : perfil
+    ClientProfile *-- FullName
+    ClientProfile *-- Identification
+    ClientProfile *-- MobilePhone
+    Identification ..> IdentificationType
+    RegistrationRequest "1" *-- "1" ClientProfile : contiene
+    RegistrationRequest ..> AccountType
+    CreditCard ..> CreditLimitExceededError
+    DomainError <|-- AccountInvalidAmountError
+    DomainError <|-- AccountNotEnoughtFundsError
     DomainError <|-- CreditLimitExceededError
     DomainError <|-- InvalidAccountTypeError
     DomainError <|-- MonthlyStatementNotSupportedError
+    DomainError <|-- AccountLockedError
+    DomainError <|-- DeletionNotConfirmedError
+    DomainError <|-- FullNameInvalidError
+    DomainError <|-- IdentificationAlreadyRegisteredError
+    DomainError <|-- InvalidAccountError
+    DomainError <|-- InvalidCredentialsError
+    DomainError <|-- InvalidIdentificationError
+    DomainError <|-- InvalidPhoneError
+    DomainError <|-- ManagerProtectedError
+    DomainError <|-- PasswordMismatchError
     DomainError <|-- UserAlreadyExistsError
     DomainError <|-- UserHasOpenBalanceError
-    DomainError <|-- DeletionNotConfirmedError
-    DomainError <|-- ManagerProtectedError
-    DomainError <|-- InvalidIdentificationError
-    DomainError <|-- FullNameInvalidError
-    DomainError <|-- InvalidPhoneError
-    DomainError <|-- PasswordMismatchError
-    DomainError <|-- IdentificationAlreadyRegisteredError
-    Usuario "1" o-- "0..1" ClientProfile : tiene
-    ClientProfile ..> Identification : usa
-    RegistrationRequest "1" *-- "1" ClientProfile : contiene
+    DomainError <|-- UserNameRequiredError
+    DomainError <|-- UserNotFoundError
+    DomainError <|-- UserPasswordRequiredError
+    DomainError <|-- RegistrationRequestAlreadyExistsError
+    DomainError <|-- RegistrationRequestNotFoundError
+    DomainError <|-- AmountInvalidError
+
+    %% ===== Relaciones: aplicación e infraestructura =====
+    UserRepository ..> User
+    AccountRepository ..> Account
+    RegistrationRequestRepository ..> RegistrationRequest
+    RegisterUserUseCase ..> RegisterUserDTO
+    LoginUseCase ..> LoginDTO
+    DepositUseCase ..> DepositDTO
+    WithdrawUseCase ..> WithdrawDTO
+    RegisterUserUseCase --> UserRepository
+    RegisterUserUseCase --> AccountRepository
+    LoginUseCase --> UserRepository
+    GetLoginStatusUseCase --> UserRepository
+    CreateManagerUseCase --> UserRepository
+    CreateManagerUseCase --> AccountRepository
+    ListUsersUseCase --> UserRepository
+    ChangeUserPasswordUseCase --> UserRepository
+    UnlockUserUseCase --> UserRepository
+    DeleteUserUseCase --> UserRepository
+    DeleteUserUseCase --> AccountRepository
+    WithdrawUseCase --> AccountRepository
+    DepositUseCase --> AccountRepository
+    GetBalanceUseCase --> AccountRepository
+    GetMovementsUseCase --> AccountRepository
+    ApplyMonthlyStatementUseCase --> AccountRepository
+    SubmitRegistrationRequestUseCase --> UserRepository
+    SubmitRegistrationRequestUseCase --> RegistrationRequestRepository
+    ListRegistrationRequestsUseCase --> RegistrationRequestRepository
+    ApproveRegistrationRequestUseCase --> RegistrationRequestRepository
+    ApproveRegistrationRequestUseCase --> RegisterUserUseCase
+    RejectRegistrationRequestUseCase --> RegistrationRequestRepository
+    AccountRepository <|.. InMemoryAccountRepository
+    UserRepository <|.. InMemoryUserRepository
+    RegistrationRequestRepository <|.. InMemoryRegistrationRequestRepository
+    AccountRepository <|.. LocalStorageAccountRepository
+    UserRepository <|.. LocalStorageUserRepository
+    RegistrationRequestRepository <|.. LocalStorageRegistrationRequestRepository
+    LocalStorageAccountRepository ..> JsonStorage
+    LocalStorageUserRepository ..> JsonStorage
+    LocalStorageRegistrationRequestRepository ..> JsonStorage
+    LocalStorageUserRepository --> AccountRepository
+    Container ..> LocalStorageAccountRepository
+    Container ..> LocalStorageUserRepository
+    Container ..> LocalStorageRegistrationRequestRepository
