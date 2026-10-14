@@ -77,6 +77,8 @@ classDiagram
         WITHDRAW
         DEPOSIT
         INTEREST
+        TRANSFER_OUT
+        TRANSFER_IN
     }
     class AccountType {
         <<enumeration>>
@@ -182,6 +184,7 @@ classDiagram
     }
 
     class AccountInvalidAmountError
+    class SameAccountTransferError
     class AccountNotEnoughtFundsError
     class CreditLimitExceededError
     class InvalidAccountTypeError
@@ -240,6 +243,9 @@ classDiagram
     class DepositDTO {
         <<dto>>
     }
+    class TransferDTO {
+        <<dto>>
+    }
     class WithdrawDTO {
         <<dto>>
     }
@@ -290,6 +296,14 @@ classDiagram
         +execute(input)
     }
     class GetMovementsUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class TransferUseCase {
+        <<use case>>
+        +execute(input)
+    }
+    class ListTransferRecipientsUseCase {
         <<use case>>
         +execute(input)
     }
@@ -359,6 +373,7 @@ classDiagram
     RegistrationRequest ..> AccountType
     CreditCard ..> CreditLimitExceededError
     DomainError <|-- AccountInvalidAmountError
+    DomainError <|-- SameAccountTransferError
     DomainError <|-- AccountNotEnoughtFundsError
     DomainError <|-- CreditLimitExceededError
     DomainError <|-- InvalidAccountTypeError
@@ -390,6 +405,8 @@ classDiagram
     LoginUseCase ..> LoginDTO
     DepositUseCase ..> DepositDTO
     WithdrawUseCase ..> WithdrawDTO
+    TransferUseCase ..> TransferDTO
+    TransferUseCase ..> SameAccountTransferError
     RegisterUserUseCase --> UserRepository
     RegisterUserUseCase --> AccountRepository
     LoginUseCase --> UserRepository
@@ -402,6 +419,9 @@ classDiagram
     DeleteUserUseCase --> UserRepository
     DeleteUserUseCase --> AccountRepository
     WithdrawUseCase --> AccountRepository
+    TransferUseCase --> UserRepository
+    TransferUseCase --> AccountRepository
+    ListTransferRecipientsUseCase --> UserRepository
     DepositUseCase --> AccountRepository
     GetBalanceUseCase --> AccountRepository
     GetMovementsUseCase --> AccountRepository

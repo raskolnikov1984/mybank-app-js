@@ -68,7 +68,7 @@ Clients stored before these data existed (and the manager) keep working and are 
 | `/` | Public | Institutional landing page: menu, presentation, products, how to start and corporate footer |
 | `/login` | Public | Login form (manager goes to `/gerente`, clients to `/cliente`) |
 | `/registro` | Public | Registration **request** form (name, password, product and initial balance when it applies) |
-| `/cliente` | Clients | Deposit, withdraw, balance, movements and monthly statement (credit card) |
+| `/cliente` | Clients | Deposit, withdraw, transfer to another client (pick the destination from the list of available accounts), balance, movements and monthly statement (credit card) |
 | `/gerente` | Manager | Registration requests, client registration and client administration |
 
 Registering from `/registro` does not create a user: it stores a pending request with the identity data of the applicant. The manager reviews it in `/gerente` ("Solicitudes de registro") and either **approves** it (the client is created with the usual registration rules and can log in with the requested password) or **rejects** it (the request is discarded and the name is free again). A request is rejected when its name already belongs to a user or to another pending request, and an approval fails, keeping the request pending, if the name was taken in the meantime. The applicant is not notified: the login says "No tiene una cuenta abierta" until the request is approved. Requests exist only in the web app; the console keeps direct registration by the manager.
