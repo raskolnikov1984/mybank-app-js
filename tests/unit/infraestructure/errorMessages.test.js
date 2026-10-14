@@ -17,6 +17,9 @@ import { PasswordMismatchError } from "../../../src/domain/aggregates/user/error
 import { IdentificationAlreadyRegisteredError } from "../../../src/domain/aggregates/user/errors/IdentificationAlreadyRegisteredError.js";
 import { AccountLockedError } from "../../../src/domain/aggregates/user/errors/AccountLockedError.js";
 import { SameAccountTransferError } from "../../../src/domain/aggregates/account/errors/SameAccountTransferError.js";
+import { PaymentExceedsDebtError } from "../../../src/domain/aggregates/account/errors/PaymentExceedsDebtError.js";
+import { InvalidInstallmentsError } from "../../../src/domain/aggregates/account/errors/InvalidInstallmentsError.js";
+import { InstallmentsNotSupportedError } from "../../../src/domain/aggregates/account/errors/InstallmentsNotSupportedError.js";
 import { UserNotFoundError } from "../../../src/domain/aggregates/user/errors/UserNotFoundError.js";
 
 describe("toMessage", () => {
@@ -34,6 +37,15 @@ describe("toMessage", () => {
 
     it("Must translate the transfer to the same account", () => {
         expect(toMessage(new SameAccountTransferError())).toBe("No puedes transferir a tu propia cuenta.");
+    });
+
+    it("Must translate the payment above the debt", () => {
+        expect(toMessage(new PaymentExceedsDebtError())).toBe("El pago supera la deuda actual de la tarjeta.");
+    });
+
+    it("Must translate the installment errors", () => {
+        expect(toMessage(new InvalidInstallmentsError())).toBe("El número de cuotas debe ser un entero entre 1 y 36.");
+        expect(toMessage(new InstallmentsNotSupportedError())).toBe("Tu producto no permite compras a cuotas.");
     });
 
     it("Must translate the unsupported monthly statement", () => {

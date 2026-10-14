@@ -60,7 +60,9 @@ export const products = [
         text: "Compra hoy y paga después con un cupo claro y fácil de seguir.",
         conditions: [
             "Cupo de $2.000.000",
-            "Interés mensual del 2 % sobre la deuda",
+            "Retiros con 2 % de interés sobre el monto retirado",
+            "Compras a cuotas: sin interés hasta 2 cuotas, 1,9 % mensual de 3 a 6 cuotas y 2,3 % mensual desde 7 cuotas",
+            "Ves tu cuota mensual en cada compra",
             "Tus pagos reducen la deuda y liberan cupo",
         ],
     },

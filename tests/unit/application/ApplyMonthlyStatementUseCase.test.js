@@ -33,17 +33,23 @@ describe("ApplyMonthlyStatementUseCase", () => {
         expect(() => useCase.execute("nobody")).toThrow(AccountInvalidAmountError);
     });
 
-    it("Must apply the interest of a credit card with debt", () => {
+    it("Must reject a credit card with debt without changing it", () => {
         const card = new CreditCard();
         card.withdrawFunds(new Money(500000));
         accountRepository.save("spender", card);
 
-        const { statement } = useCase.execute("spender");
-
-        expect(statement.type).toBe("CREDIT_CARD");
-        expect(statement.interest.getAmount()).toBe(10000);
-        expect(statement.creditUsed.getAmount()).toBe(510000);
+        expect(() => useCase.execute("spender")).toThrow(MonthlyStatementNotSupportedError);
         expect(accountRepository.findById("spender").getDebt().getAmount()).toBe(510000);
+    });
+
+    it("Must answer the same call differently only by rejecting every product", () => {
+        const card = new CreditCard();
+        card.withdrawFunds(new Money(500000));
+        accountRepository.save("spender", card);
+        accountRepository.save("saver", new SavingsAccount(new Money(100000)));
+
+        expect(() => useCase.execute("spender")).toThrow(MonthlyStatementNotSupportedError);
+        expect(() => useCase.execute("saver")).toThrow(MonthlyStatementNotSupportedError);
     });
 
     it("Must reject a savings account without changing it", () => {

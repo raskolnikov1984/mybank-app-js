@@ -7,6 +7,7 @@ import { LoginUseCase } from "../../../src/application/use-cases/LoginUseCase.js
 import { SameAccountTransferError } from "../../../src/domain/aggregates/account/errors/SameAccountTransferError.js";
 import { AccountInvalidAmountError } from "../../../src/domain/aggregates/account/errors/AccountInvalidAmountError.js";
 import { AccountNotEnoughtFundsError } from "../../../src/domain/aggregates/account/errors/AccountNotEnoughtFundsError.js";
+import { PaymentExceedsDebtError } from "../../../src/domain/aggregates/account/errors/PaymentExceedsDebtError.js";
 import { AmountInvalidError } from "../../../src/domain/shared/errors/AmountInvalidError.js";
 import { Money } from "../../../src/domain/shared/value-objects/Money.js";
 import { MockUserRepository, MockAccountRepository } from "./mockRepositories.js";
@@ -53,7 +54,7 @@ describe("Transfers", () => {
 
             transfer.execute({ fromAccountId: "ana", toAccountId: "tarjeta", amount: 100000 });
 
-            expect(debtOf("tarjeta")).toBe(400000);
+            expect(debtOf("tarjeta")).toBe(410000);
         });
 
         it("Must use the available credit when the sender is a credit card", () => {
@@ -61,8 +62,32 @@ describe("Transfers", () => {
 
             transfer.execute({ fromAccountId: "tarjeta", toAccountId: "luis", amount: 300000 });
 
-            expect(debtOf("tarjeta")).toBe(300000);
+            expect(debtOf("tarjeta")).toBe(306000);
             expect(balanceOf("luis")).toBe(500000);
+            expect(typesOf("tarjeta")).toEqual(["INTEREST", "TRANSFER_OUT"]);
+        });
+
+        it("Must reject a transfer above the debt of a credit card recipient leaving both accounts unchanged", () => {
+            register.execute(withIdentity({ name: "tarjeta", password: "pw", accountType: "CREDIT_CARD" }));
+            accounts.findById("tarjeta").withdrawFunds(new Money(294118)); // debt 300000 with its interest
+
+            expect(() => transfer.execute({ fromAccountId: "ana", toAccountId: "tarjeta", amount: 450000 })).toThrow(
+                PaymentExceedsDebtError,
+            );
+
+            expect(debtOf("tarjeta")).toBe(300000);
+            expect(balanceOf("ana")).toBe(500000);
+            expect(typesOf("ana")).toEqual([]);
+        });
+
+        it("Must reject a transfer to a credit card without debt", () => {
+            register.execute(withIdentity({ name: "tarjeta", password: "pw", accountType: "CREDIT_CARD" }));
+
+            expect(() => transfer.execute({ fromAccountId: "ana", toAccountId: "tarjeta", amount: 1000 })).toThrow(
+                PaymentExceedsDebtError,
+            );
+
+            expect(balanceOf("ana")).toBe(500000);
         });
 
         it("Must reject insufficient funds leaving both accounts unchanged", () => {

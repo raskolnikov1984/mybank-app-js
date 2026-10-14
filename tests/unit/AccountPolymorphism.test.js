@@ -38,7 +38,7 @@ describe("Account polymorphism", () => {
             return account.getMovements().map((m) => m.getType()).join(",");
         });
 
-        expect(traces).toEqual(["INTEREST,WITHDRAW", "WITHDRAW", "WITHDRAW"]);
+        expect(traces).toEqual(["INTEREST,WITHDRAW", "WITHDRAW", "INTEREST,WITHDRAW"]);
     });
 
     it("Must answer the monthly statement differently depending on the product", () => {
@@ -47,8 +47,22 @@ describe("Account polymorphism", () => {
 
         expect(() => savings.monthlyStatement()).toThrow(MonthlyStatementNotSupportedError);
         expect(() => checking.monthlyStatement()).toThrow(MonthlyStatementNotSupportedError);
-        expect(card.monthlyStatement().interest.getAmount()).toBe(2000);
-        expect(buildAccounts().map((a) => a.supportsMonthlyStatement())).toEqual([false, false, true]);
+        expect(() => card.monthlyStatement()).toThrow(MonthlyStatementNotSupportedError);
+        expect(buildAccounts().map((a) => a.supportsMonthlyStatement())).toEqual([false, false, false]);
+    });
+
+    it("Must answer a purchase in installments differently depending on the product", () => {
+        const outcomes = buildAccounts().map((account) => {
+            try {
+                account.purchaseInInstallments(new Money(50000), 3);
+                return "ok";
+            } catch (error) {
+                return error.errorCode();
+            }
+        });
+
+        expect(outcomes).toEqual(["INSTALLMENTS_NOT_SUPPORTED_ERROR", "INSTALLMENTS_NOT_SUPPORTED_ERROR", "ok"]);
+        expect(buildAccounts().map((a) => a.supportsInstallments())).toEqual([false, false, true]);
     });
 
     it("Must give a different type name and description for each type", () => {
@@ -66,5 +80,6 @@ describe("Account polymorphism", () => {
         expect(() => account.creditLimit()).toThrow("NOT_IMPLEMENTED_METHOD");
         expect(() => account.withdrawFunds(new Money(10))).toThrow("NOT_IMPLEMENTED_METHOD");
         expect(account.supportsMonthlyStatement()).toBe(false);
+        expect(account.supportsInstallments()).toBe(false);
     });
 });

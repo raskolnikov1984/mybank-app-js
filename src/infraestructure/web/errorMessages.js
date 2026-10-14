@@ -15,6 +15,9 @@ const MESSAGES = {
     REGISTRATION_REQUEST_ALREADY_EXISTS_ERROR: "Ya existe una solicitud de registro pendiente con ese nombre.",
     REGISTRATION_REQUEST_NOT_FOUND_ERROR: "No se encontró la solicitud de registro.",
     SAME_ACCOUNT_TRANSFER_ERROR: "No puedes transferir a tu propia cuenta.",
+    PAYMENT_EXCEEDS_DEBT_ERROR: "El pago supera la deuda actual de la tarjeta.",
+    INVALID_INSTALLMENTS_ERROR: "El número de cuotas debe ser un entero entre 1 y 36.",
+    INSTALLMENTS_NOT_SUPPORTED_ERROR: "Tu producto no permite compras a cuotas.",
     INVALID_ACCOUNT_ERROR: "La cuenta del usuario no es válida.",
 };
 

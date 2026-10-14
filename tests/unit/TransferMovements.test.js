@@ -13,6 +13,7 @@ const types = (account) => account.getMovements().map((m) => m.getType());
 describe("Movement type on withdraw and deposit", () => {
     it("Must keep WITHDRAW and DEPOSIT when no type is given", () => {
         for (const account of [new SavingsAccount(new Money(100000)), new CheckingAccount(new Money(100000)), new CreditCard()]) {
+            account.withdrawFunds(new Money(2000));
             account.depositFunds(new Money(1000));
             account.withdrawFunds(new Money(1000));
 
@@ -33,7 +34,7 @@ describe("Movement type on withdraw and deposit", () => {
 
         expect(types(savings)).toEqual([MovementType.INTEREST, MovementType.TRANSFER_OUT, MovementType.TRANSFER_IN]);
         expect(types(checking)).toEqual([MovementType.TRANSFER_OUT]);
-        expect(types(card)).toEqual([MovementType.TRANSFER_OUT]);
+        expect(types(card)).toEqual([MovementType.INTEREST, MovementType.TRANSFER_OUT]);
     });
 
     it("Must restore transfer movements from a snapshot", () => {

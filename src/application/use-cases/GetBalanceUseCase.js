@@ -21,6 +21,7 @@ export class GetBalanceUseCase {
             availableCredit: account.getAvailableCredit(),
             summary: account.describe(),
             supportsMonthlyStatement: account.supportsMonthlyStatement(),
+            supportsInstallments: account.supportsInstallments(),
         };
     }
 }

@@ -11,6 +11,7 @@ describe("format helpers", () => {
     it("Must label every movement type including transfers", () => {
         expect(MOVEMENT_LABELS.TRANSFER_OUT).toBe("Transferencia enviada");
         expect(MOVEMENT_LABELS.TRANSFER_IN).toBe("Transferencia recibida");
+        expect(MOVEMENT_LABELS.INSTALLMENT_PURCHASE).toBe("Compra a cuotas");
         for (const type of ["DEPOSIT", "WITHDRAW", "INTEREST"])
             expect(MOVEMENT_LABELS[type]).toBeTruthy();
     });

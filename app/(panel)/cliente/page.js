@@ -71,6 +71,64 @@ function TransferForm({ recipients, onSubmit }) {
     );
 }
 
+function formatRate(rate) {
+    return `${(rate * 100).toFixed(1).replace(".", ",")} %`;
+}
+
+function InstallmentForm({ onSubmit }) {
+    const [amount, setAmount] = useState("");
+    const [installments, setInstallments] = useState("3");
+
+    let quote = null;
+    const parsedAmount = parseAmount(amount);
+    if (parsedAmount !== null) {
+        try {
+            quote = getContainer().quoteInstallments.execute({
+                amount: parsedAmount,
+                installments: Number(installments),
+            });
+        } catch {
+            quote = null;
+        }
+    }
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (onSubmit(amount, installments)) setAmount("");
+    };
+
+    return (
+        <CollapsibleSection title="Compra a cuotas">
+            <form onSubmit={handleSubmit} noValidate>
+                <label>
+                    Valor de la compra
+                    <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                </label>
+                <label>
+                    Número de cuotas (1 a 36)
+                    <input
+                        type="number"
+                        min="1"
+                        max="36"
+                        value={installments}
+                        onChange={(e) => setInstallments(e.target.value)}
+                    />
+                </label>
+                {quote && (
+                    <p className="summary" data-quote>
+                        Cuota mensual: {formatMoney(quote.monthlyPayment)}
+                        <br />
+                        <span className="muted">
+                            Tasa {formatRate(quote.rate)} mensual · Total a pagar {formatMoney(quote.totalToPay)}
+                        </span>
+                    </p>
+                )}
+                <button type="submit">Comprar a cuotas</button>
+            </form>
+        </CollapsibleSection>
+    );
+}
+
 function ClientView({ name }) {
     const [info, setInfo] = useState(null);
     const [movements, setMovements] = useState([]);
@@ -142,6 +200,9 @@ function ClientView({ name }) {
                 <section className="card">
                     <h2>{info.typeName}</h2>
                     <p className="summary">{info.summary}</p>
+                    {info.supportsInstallments && (
+                        <p className="muted">Los retiros con la tarjeta cobran 2 % de interés. Los pagos no pueden superar la deuda.</p>
+                    )}
                 </section>
             )}
 
@@ -174,6 +235,24 @@ function ClientView({ name }) {
 
             <TransferForm recipients={recipients} onSubmit={transfer} />
 
+            {info?.supportsInstallments && (
+                <InstallmentForm
+                    onSubmit={(value, installments) =>
+                        withAmount(
+                            value,
+                            (amount) =>
+                                container().purchase.execute({
+                                    accountId: name,
+                                    amount,
+                                    installments: Number(installments),
+                                }).purchase,
+                            (p) =>
+                                `Compra a ${p.installments} cuotas registrada. Cuota mensual: ${formatMoney(p.monthlyPayment)}.`,
+                        )
+                    }
+                />
+            )}
+
             {info?.supportsMonthlyStatement && (
                 <section className="card">
                     <h2>Estado mensual</h2>
@@ -203,6 +282,7 @@ function ClientView({ name }) {
                                 <th>Fecha</th>
                                 <th>Tipo</th>
                                 <th>Monto</th>
+                                <th>Cuota mensual</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -211,6 +291,11 @@ function ClientView({ name }) {
                                     <td>{m.getDate().toLocaleString("es-CO")}</td>
                                     <td>{MOVEMENT_LABELS[m.getType()] ?? m.getType()}</td>
                                     <td>{formatMoney(m.getAmount())}</td>
+                                    <td>
+                                        {m.getInstallments()
+                                            ? `${formatMoney(m.getInstallments().monthlyPayment)} (${m.getInstallments().count} cuotas)`
+                                            : "—"}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

@@ -53,7 +53,7 @@ describe("Account snapshots", () => {
         const restored = roundTrip(card);
 
         expect(restored).toBeInstanceOf(CreditCard);
-        expect(restored.getDebt().equals(new Money(300000))).toBe(true);
+        expect(restored.getDebt().equals(new Money(306000))).toBe(true);
         expect(restored.creditLimit().equals(new Money(3000000))).toBe(true);
     });
 

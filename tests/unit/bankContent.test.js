@@ -23,11 +23,15 @@ describe("Public site content", () => {
         expect(checking.toLowerCase()).toContain("no genera intereses");
     });
 
-    it("Must state the credit card limit and interest as currently implemented", () => {
+    it("Must state the credit card limit and the installment rates as currently implemented", () => {
         const card = text(products[2]);
 
         expect(card).toContain("$2.000.000");
-        expect(card).toContain("2 %");
+        expect(card).toContain("Retiros con 2 %");
+        expect(card).toContain("hasta 2 cuotas");
+        expect(card).toContain("1,9 %");
+        expect(card).toContain("2,3 %");
+        expect(card).not.toContain("2 % sobre la deuda");
     });
 
     it("Must have corporate data for the footer", () => {

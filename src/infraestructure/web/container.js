@@ -19,6 +19,8 @@ import { UnlockUserUseCase } from "../../application/use-cases/UnlockUserUseCase
 import { DeleteUserUseCase } from "../../application/use-cases/DeleteUserUseCase.js";
 import { TransferUseCase } from "../../application/use-cases/TransferUseCase.js";
 import { ListTransferRecipientsUseCase } from "../../application/use-cases/ListTransferRecipientsUseCase.js";
+import { PurchaseUseCase } from "../../application/use-cases/PurchaseUseCase.js";
+import { QuoteInstallmentsUseCase } from "../../application/use-cases/QuoteInstallmentsUseCase.js";
 import { ApplyMonthlyStatementUseCase } from "../../application/use-cases/ApplyMonthlyStatementUseCase.js";
 
 export const SESSION_KEY = "mi-plata:v1:session";
@@ -48,6 +50,8 @@ export function getContainer() {
         deposit: new DepositUseCase(accounts),
         getBalance: new GetBalanceUseCase(accounts),
         getMovements: new GetMovementsUseCase(accounts),
+        purchase: new PurchaseUseCase(accounts),
+        quoteInstallments: new QuoteInstallmentsUseCase(),
         transfer: new TransferUseCase(users, accounts),
         listTransferRecipients: new ListTransferRecipientsUseCase(users),
         applyMonthlyStatement: new ApplyMonthlyStatementUseCase(accounts),

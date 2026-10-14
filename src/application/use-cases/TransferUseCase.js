@@ -29,6 +29,7 @@ export class TransferUseCase {
             throw new AccountInvalidAmountError("Account not found");
 
         const amount = new Money(dto.getAmount());
+        destination.assertCanDeposit(amount);
         origin.withdrawFunds(amount, MovementType.TRANSFER_OUT);
         destination.depositFunds(amount, MovementType.TRANSFER_IN);
 

@@ -4,17 +4,21 @@ export const MovementType = Object.freeze({
     INTEREST: "INTEREST",
     TRANSFER_OUT: "TRANSFER_OUT",
     TRANSFER_IN: "TRANSFER_IN",
+    INSTALLMENT_PURCHASE: "INSTALLMENT_PURCHASE",
 });
 
 export class Movement {
     #type;
     #amount;
     #date;
+    #installments;
 
-    constructor(type, amount, date = new Date()) {
+    // installments: { count, monthlyPayment: Money, totalToPay: Money } for installment purchases, null otherwise.
+    constructor(type, amount, date = new Date(), installments = null) {
         this.#type = type;
         this.#amount = amount;
         this.#date = date;
+        this.#installments = installments;
     }
 
     getType() {
@@ -27,5 +31,9 @@ export class Movement {
 
     getDate() {
         return this.#date;
+    }
+
+    getInstallments() {
+        return this.#installments;
     }
 }

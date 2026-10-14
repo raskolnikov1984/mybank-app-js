@@ -32,14 +32,17 @@ describe("GetBalanceUseCase", () => {
         expect(() => useCase.execute("nobody")).toThrow(AccountInvalidAmountError);
     });
 
-    it("Must report that only the credit card supports a monthly statement", () => {
+    it("Must report that no product supports a monthly statement and only the credit card supports installments", () => {
         accountRepository.save("saver", new SavingsAccount(new Money(1000)));
         accountRepository.save("payer", new CheckingAccount(new Money(1000)));
         accountRepository.save("spender", new CreditCard());
 
         expect(useCase.execute("saver").supportsMonthlyStatement).toBe(false);
         expect(useCase.execute("payer").supportsMonthlyStatement).toBe(false);
-        expect(useCase.execute("spender").supportsMonthlyStatement).toBe(true);
+        expect(useCase.execute("spender").supportsMonthlyStatement).toBe(false);
+        expect(useCase.execute("saver").supportsInstallments).toBe(false);
+        expect(useCase.execute("payer").supportsInstallments).toBe(false);
+        expect(useCase.execute("spender").supportsInstallments).toBe(true);
     });
 
     it("Must return the balance, type and summary of the product", () => {

@@ -2,6 +2,7 @@ import { Money } from "../../../shared/value-objects/Money.js";
 import { AccountInvalidAmountError } from "../errors/AccountInvalidAmountError.js";
 import { AccountNotEnoughtFundsError } from "../errors/AccountNotEnoughtFundsError.js";
 import { MonthlyStatementNotSupportedError } from "../errors/MonthlyStatementNotSupportedError.js";
+import { InstallmentsNotSupportedError } from "../errors/InstallmentsNotSupportedError.js";
 import { Movement, MovementType } from "./Movement.js";
 
 const NOT_IMPLEMENTED = "NOT_IMPLEMENTED_METHOD";
@@ -48,6 +49,14 @@ export class Account {
 
     monthlyStatement() {
         throw new MonthlyStatementNotSupportedError();
+    }
+
+    supportsInstallments() {
+        return false;
+    }
+
+    purchaseInInstallments() {
+        throw new InstallmentsNotSupportedError();
     }
 
     describe() {
@@ -98,8 +107,13 @@ export class Account {
         this.#movements.push(new Movement(type, amount));
     }
 
-    depositFunds(amount, type = MovementType.DEPOSIT) {
+    // Everything that can reject a deposit, so callers can check it before moving any money.
+    assertCanDeposit(amount) {
         this.#assertPositiveMoney(amount, "Deposit amount must be positive");
+    }
+
+    depositFunds(amount, type = MovementType.DEPOSIT) {
+        this.assertCanDeposit(amount);
 
         const toCredit = this.#creditUsed.isLessThan(amount) ? this.#creditUsed : amount;
         this.#creditUsed = this.#creditUsed.subtract(toCredit);
@@ -118,6 +132,7 @@ export class Account {
                 type: movement.getType(),
                 amount: movement.getAmount().getAmount(),
                 date: movement.getDate().toISOString(),
+                ...this.#installmentsSnapshot(movement),
             })),
         };
     }
@@ -128,7 +143,19 @@ export class Account {
         account.#balance = new Money(snapshot.balance, currency);
         account.#creditUsed = new Money(snapshot.creditUsed, currency);
         account.#movements = snapshot.movements.map(
-            (m) => new Movement(m.type, new Money(m.amount, currency), new Date(m.date)),
+            (m) =>
+                new Movement(
+                    m.type,
+                    new Money(m.amount, currency),
+                    new Date(m.date),
+                    m.installments
+                        ? {
+                              count: m.installments,
+                              monthlyPayment: new Money(m.monthlyPayment, currency),
+                              totalToPay: new Money(m.totalToPay, currency),
+                          }
+                        : null,
+                ),
         );
         return account;
     }
@@ -152,6 +179,14 @@ export class Account {
         this.#movements.push(new Movement(type, amount));
     }
 
+    // Debt-financed charge that records its own movement (used by installment purchases).
+    _chargeWithMovement(total, movement) {
+        const fromBalance = this.#balance.isLessThan(total) ? this.#balance : total;
+        this.#balance = this.#balance.subtract(fromBalance);
+        this.#creditUsed = this.#creditUsed.add(total.subtract(fromBalance));
+        this.#movements.push(movement);
+    }
+
     _statementResult({ interest, fee }) {
         return {
             type: this.accountType(),
@@ -169,6 +204,18 @@ export class Account {
             currency: money.getCurrency(),
             maximumFractionDigits: 0,
         }).format(money.getAmount());
+    }
+
+    #installmentsSnapshot(movement) {
+        const plan = movement.getInstallments();
+
+        return plan
+            ? {
+                  installments: plan.count,
+                  monthlyPayment: plan.monthlyPayment.getAmount(),
+                  totalToPay: plan.totalToPay.getAmount(),
+              }
+            : {};
     }
 
     #assertPositiveMoney(amount, positiveMessage) {

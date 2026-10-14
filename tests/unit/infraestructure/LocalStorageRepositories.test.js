@@ -3,6 +3,7 @@ import { FakeStorage } from "./FakeStorage.js";
 import { LocalStorageAccountRepository } from "../../../src/infraestructure/repositories/LocalStorageAccountRepository.js";
 import { LocalStorageUserRepository } from "../../../src/infraestructure/repositories/LocalStorageUserRepository.js";
 import { RegisterUserUseCase } from "../../../src/application/use-cases/RegisterUserUseCase.js";
+import { PurchaseUseCase } from "../../../src/application/use-cases/PurchaseUseCase.js";
 import { TransferUseCase } from "../../../src/application/use-cases/TransferUseCase.js";
 import { WithdrawUseCase } from "../../../src/application/use-cases/WithdrawUseCase.js";
 import { LoginUseCase } from "../../../src/application/use-cases/LoginUseCase.js";
@@ -30,6 +31,44 @@ describe("LocalStorage repositories", () => {
         expect(accounts.findById("x")).toBeNull();
         expect(users.findByName("x")).toBeNull();
         expect(users.exists("x")).toBe(false);
+    });
+
+    it("Must keep the card untouched after a rejected payment above the debt and across a reload", () => {
+        const storage = new FakeStorage();
+        const first = open(storage);
+        const register = new RegisterUserUseCase(first.users, first.accounts);
+        register.execute(withIdentity({ name: "ana", password: "pw", accountType: "CREDIT_CARD" }));
+        register.execute(withIdentity({ name: "luis", password: "pw", accountType: "SAVINGS", initialBalance: 500000 }));
+        new WithdrawUseCase(first.accounts).execute({ accountId: "ana", amount: 294118 });
+
+        expect(() =>
+            new TransferUseCase(first.users, first.accounts).execute({ fromAccountId: "luis", toAccountId: "ana", amount: 450000 }),
+        ).toThrow();
+
+        const second = open(storage);
+        expect(second.accounts.findById("ana").getDebt().equals(new Money(300000))).toBe(true);
+        expect(second.accounts.findById("luis").getBalance().equals(new Money(500000))).toBe(true);
+        expect(second.accounts.findById("luis").getMovements()).toEqual([]);
+    });
+
+    it("Must keep installment purchases with their data across a reload", () => {
+        const storage = new FakeStorage();
+        const first = open(storage);
+        new RegisterUserUseCase(first.users, first.accounts).execute(withIdentity({
+            name: "ana", password: "pw", accountType: "CREDIT_CARD",
+        }));
+        new PurchaseUseCase(first.accounts).execute({ accountId: "ana", amount: 1000000, installments: 6 });
+
+        const card = open(storage).accounts.findById("ana");
+        const [movement] = card.getMovements();
+
+        expect(card.getDebt().equals(new Money(1067544))).toBe(true);
+        expect(movement.getType()).toBe("INSTALLMENT_PURCHASE");
+        expect(movement.getAmount().equals(new Money(1000000))).toBe(true);
+        expect(movement.getInstallments().count).toBe(6);
+        expect(movement.getInstallments().monthlyPayment.equals(new Money(177924))).toBe(true);
+        expect(movement.getInstallments().totalToPay.equals(new Money(1067544))).toBe(true);
+        expect(movement.getDate()).toBeInstanceOf(Date);
     });
 
     it("Must keep transfer movements with type, amount and date across a reload", () => {
@@ -65,8 +104,8 @@ describe("LocalStorage repositories", () => {
         expect(second.users.exists("ana")).toBe(true);
         const account = second.accounts.findById("ana");
         expect(account).toBeInstanceOf(CreditCard);
-        expect(account.getDebt().equals(new Money(300000))).toBe(true);
-        expect(account.getMovements().length).toBe(1);
+        expect(account.getDebt().equals(new Money(306000))).toBe(true);
+        expect(account.getMovements().map((m) => m.getType())).toEqual(["INTEREST", "WITHDRAW"]);
     });
 
     it("Must give the user the same account instance the account repository returns", () => {

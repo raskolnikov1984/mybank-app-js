@@ -20,6 +20,7 @@ export const MOVEMENT_LABELS = {
     INTEREST: "Intereses",
     TRANSFER_OUT: "Transferencia enviada",
     TRANSFER_IN: "Transferencia recibida",
+    INSTALLMENT_PURCHASE: "Compra a cuotas",
 };
 
 export function parseAmount(value) {
